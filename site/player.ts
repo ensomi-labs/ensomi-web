@@ -1,10 +1,14 @@
 import type { Chart } from '@ensomi/runtime';
 
 /**
- * Live chart inspector modelled on Beatmap Lens's falling-note viewport: chart time is the audio
- * element's clock with no offset, notes fall to a judgement line at 82% of the height, a click
- * seeks to the time under the pointer, a drag scrubs, the wheel and Up/Down navigate, and a
- * vertical overview (bottom = song start) shows note density, the visible window and the playhead.
+ * Live chart inspector modelled on Beatmap Lens's falling-note viewport: chart time is the time
+ * being heard, notes fall to a judgement line at 82% of the height, a click seeks to the time under
+ * the pointer, a drag scrubs, the wheel and Up/Down navigate, and a vertical overview (bottom = song
+ * start) shows note density, the visible window and the playhead. The first play routes the audio
+ * element through a gain node of one AudioContext, the only place browsers report output latency
+ * (about 200 ms on Bluetooth headphones). While playing, chart time is the element's clock less that
+ * latency at the audio rate, held where the play or a seek started until the sound from there is
+ * heard; paused, it is the element's clock.
  */
 export const VISUAL_SPEEDS = [240, 480, 720, 960];
 export const RATES = [0.5, 0.75, 1, 1.25, 1.5];
@@ -65,9 +69,15 @@ export class Player {
     private bars: boolean[] = [];
     private density: number[] = [];
     private drag?: { id: number; startY: number; startMs: number; moved: boolean };
+    private context?: AudioContext;
+    private gain?: GainNode;
+    /** Where playback last paused or was sought, in ms, so where a play starts: while playing, the drawing holds there until it is heard. */
+    private from = 0;
 
     constructor(private lanes: HTMLCanvasElement, private overview: HTMLCanvasElement, readonly audio: HTMLAudioElement, private onFrame: (ms: number) => void) {
         audio.preservesPitch = true;
+        // Not on play: by the play event the clock may have moved on. These also cover media keys and the restart after the end.
+        for (const type of ['pause', 'seeking']) audio.addEventListener(type, () => { this.from = audio.currentTime * 1000; });
         lanes.addEventListener('pointerdown', e => {
             if (e.button !== 0 || !this.track) return;
             e.preventDefault();
@@ -116,11 +126,31 @@ export class Player {
     }
 
     get duration() { return this.track?.chart.duration_ms ?? 0; }
-    get time() { return this.audio.currentTime * 1000; }
-    seek(ms: number) { this.audio.currentTime = clamp(ms, 0, this.duration) / 1000; }
+    get time() {
+        const at = this.audio.currentTime * 1000, c = this.context;
+        if (this.audio.paused || !c) return at;
+        return Math.max(this.from, at - ((c.baseLatency ?? 0) + (c.outputLatency ?? 0)) * 1000 * this.audio.playbackRate);
+    }
+    seek(ms: number) {
+        this.audio.currentTime = clamp(ms, 0, this.duration) / 1000;
+        this.from = this.audio.currentTime * 1000;
+    }
+    /** From 0 to 1: the element's volume until the first play, then the gain's, with the element's at 1. */
+    set volume(v: number) {
+        if (this.gain) this.gain.gain.value = v;
+        else this.audio.volume = v;
+    }
     toggle() {
-        if (this.audio.paused) void this.audio.play();
-        else this.audio.pause();
+        if (!this.audio.paused) return this.audio.pause();
+        // Created on the first play, a user gesture as autoplay rules require; an element can be routed only once.
+        if (!this.context) {
+            this.context = new AudioContext();
+            this.gain = new GainNode(this.context, { gain: this.audio.volume });
+            this.context.createMediaElementSource(this.audio).connect(this.gain).connect(this.context.destination);
+            this.audio.volume = 1;
+        }
+        void this.context.resume();
+        void this.audio.play();
     }
 
     load(track: Track) {
