@@ -1,5 +1,22 @@
 # Ensomi R2 browser tests
 
+## Output latency, 2026-10-12, bings-mac
+
+**The inspector draws at the time being heard. The first play routes the page's `<audio>` through a MediaElementAudioSourceNode and a GainNode to the destination of one AudioContext, the only place browsers report output latency. While playing, chart time is the element's clock less `baseLatency + outputLatency` (read every frame, each 0 where the browser does not report it) times the audio rate, held where playback last paused or was sought until that point is heard; paused, it is the element's clock, so pausing steps the drawing forward by the latency times the rate. Once routed, the volume slider sets the gain to its value over 100 and the element's volume stays 1. Headless Chrome reports 29.3 ms, and the drawing follows the heard time with no drift at any rate.**
+
+**Measurements.** Job `20261012-092752-latency-suite`, headless Chrome 154.0.8037.99, `ENSOMI_PLAYER=1 page-matrix.mjs wasm local`, Adventure:
+
+| Check | 0.5× | 1× | 1.5× |
+| --- | --- | --- | --- |
+| Browser's latency (`baseLatency` 5.33 ms + `outputLatency` 24 ms, constant): max drift from the heard time over 60 s | 0 ms | 0 ms | 0 ms |
+| Injected 200 ms (10 + 190): audio clock less drawn time, after the hold | 100 ms | 200 ms | 300 ms |
+| Injected 200 ms: frames held at the play's start / at a seek to mid-song | 14 / 15 | 12 / 12 | 12 / 13 |
+| Getters return undefined: drawn time less audio clock | 0 ms | 0 ms | 0 ms |
+
+One frame is 8.3, 16.7 and 25 ms of song time at the three rates; the injected runs' error against `max(start, clock − latency × rate)` was 0 and no frame stepped back. The clock text matched the drawing to its 1 ms display. The gain was 0.75 at the first play with the slider set to 75% beforehand, 0.7 and 1 when the slider moved while playing, 0.8 at the end, at most 1, the element's volume 1 throughout, with one context and one source after 11 plays. Seeks while paused landed within 0.001 ms, as before. The hold point comes from the `pause` and `seeking` events and from `seek()`, not from `play`: Chrome fires `play` after its clock has moved on, by 20 ms at 1× (job `20261012-091849-latency-quick`).
+
+**Checks.** Same job, every step exited 0: `typecheck`, `typecheck:site`, `build:site`, `page-matrix.mjs wasm local` with the player checks and `webgpu local` (9 generations each, all charts valid, the seed drawn for seed 0 reproduced), `mobile.mjs` and `links.mjs`. Not tested: WebKit (Playwright's WebKit is not installed on the mac), a real Bluetooth output, pitch through the graph at 0.5× and 1.5×, and plays from media keys.
+
 ## Exact timing option, 2026-10-12, bings-mac
 
 **The page has an Exact timing option, off by default, below the star rating and seed. Off, the page decodes and generates as before: the seed-1 charts are those of the deployed page, and the beat grid is up to 1.32 ms from the Python release (Catch the Moment). On, the page decodes the song again at the file's own sample rate and the core converts the rate as the Python release does: the beat grid is within 0.0032 ms of the release on the four songs, and Python's recorded draws reproduce all four release charts. With `@ensomi/runtime` 0.1.1 the option costs about 0.35 s on Catch the Moment (44.1 kHz, 2:01) and 1.3 s on Adventure (96 kHz, 3:19), warm on WebGPU. The suite passes headless.**
