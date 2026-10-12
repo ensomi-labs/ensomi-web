@@ -34,6 +34,7 @@ node --import tsx tests/browser/diagnostics.mts wasm pcm
 node --import tsx tests/browser/diagnostics.mts wasm control
 node --import tsx tests/browser/diagnostics.mts wasm native
 node tests/browser/grid-drift.mjs <label>
+node tests/browser/tail-screenshot.mjs <name>
 node tests/browser/load-benchmark.mjs
 python3 tests/browser/validate-downloads.py
 ```
@@ -46,6 +47,6 @@ Prerequisites: installed package dependencies, installed Google Chrome, the sibl
 
 `speed.sh <label> [repeats] [providers] [songs] [source]` builds the page, serves it on port 8087 with the release model and runs `page-matrix.mjs` once per song and provider (each song first in its session, so cold then warm), keeping every report under `artifacts/speed/runs/`; `speed-summary.mjs` prints load, wall and receipt phase seconds with the chart hash from such reports. `tests/browser/speed.sh after 2 "webgpu wasm" "adventure catch-the-moment"` is the inner loop; `hf` as the source times cold downloads from Hugging Face. `tests/browser/build-main.sh [commit]` builds the page with the TypeScript runtime (main `9d8e725`) into `artifacts/bulk/main`; `ENSOMI_SITE=artifacts/bulk/main/site tests/browser/speed.sh old ...` times that build on the same port.
 
-`grid-drift.mjs <label>` generates the four release songs through the served page (WebAssembly, seed 1) and compares each receipt's timing segments and beat grid with the Python release receipts in `ensomi-model/artifacts/runtime-ref`; `ENSOMI_TEST_URL` points it at another build, such as main's on port 8088.
+`grid-drift.mjs <label>` generates the four release songs through the served page (WebAssembly, seed 1) and compares each receipt's timing segments and beat grid with the Python release receipts in `ensomi-model/artifacts/runtime-ref`; `ENSOMI_TEST_URL` points it at another build, such as main's on port 8088. `tail-screenshot.mjs <name>` replays wheel.mjs's Adventure result into the page and saves the inspector at its default speed around the long note closest before the next head in its lane, as `docs/screenshots/inspector-tail-<name>.png`.
 
 `load-benchmark.mjs` serves the production page on an automatically allocated loopback port with a test-only worker bundle that times file reads and `InferenceSession.create`. It preserves the production caching and loading code. Its generated instrumented bundle lives only under artifacts. `fallback.mjs` injects missing-adapter and device-failure conditions into an isolated worker response. `wheel.mjs` replays a previously generated Adventure result into the actual page UI to isolate wheel event delivery from inference. `mobile.mjs` uses Chrome device emulation, not a real iOS/Android browser. `hero-contrast.mjs` and `hero-contrast.py` additionally compare the actual SVG backdrop behind solid text pixels; computed ancestor backgrounds alone miss this overlap. The extended player fixture run exercises all three rates for 60 seconds each. `validate-downloads.py` independently checks ZIP CRCs and parses exported hit objects. `../../artifacts/browser-test/report.md` is written from these runs.
