@@ -1,4 +1,5 @@
-import { ControlStatus, PatternKind, decodeAudio, type GenerateChartRequest, type GenerationResult, type ModelCapabilities, type SectionRequest } from '../packages/runtime/src/index.js';
+import { ControlStatus, PatternKind, type GenerateChartRequest, type GenerationResult, type ModelCapabilities, type SectionRequest } from '../packages/runtime/src/index.js';
+import { decodeSong } from './audio.js';
 import { Player, RATES, VISUAL_SPEEDS } from './player.js';
 
 /** The generator page: model loading, song decoding, conditions, progress, result and inspector. */
@@ -12,7 +13,7 @@ const KINDS: Record<string, PatternKind | 'star'> = { jumpstream: PatternKind.JU
 const PHASES = ['', 'Prepare', 'Timing', 'Rows', 'Arrangement', 'Export'];
 const RECEIPT_TIMES: [string, string][] = [['pcm', 'Prepare PCM'], ['spectrogram', 'BeatThis spectrogram'], ['beatthis', 'BeatThis network'], ['mel', 'Log-Mel features'], ['grid', 'Timing grid'], ['rows', 'Rows model'], ['prior', 'Prior'], ['arrangement', 'R2 arrangement'], ['export', 'Export']];
 
-interface Song { file: File; buffer: ArrayBuffer; mel: Float32Array; beatthis: Float32Array; durationMs: number; decodeSeconds: number }
+interface Song { file: File; buffer: ArrayBuffer; pcm: Float32Array; rate: number; durationMs: number; decodeSeconds: number }
 interface SectionDraft { start: string; end: string; kind: string; strength: number; star: number }
 interface Job { song: Song; title: string; artist: string; seed: number | bigint; random: boolean; star: number; sections: SectionRequest[] }
 
@@ -127,9 +128,9 @@ field('song').addEventListener('change', async () => {
     update();
     $('song-status').textContent = `Decoding ${file.name}…`;
     try {
-        const start = performance.now(), buffer = await file.arrayBuffer(), { pcm } = await decodeAudio(buffer);
-        song = { file, buffer, mel: pcm.mel!, beatthis: pcm.beatthis!, durationMs: pcm.samples.length / 24000 * 1000, decodeSeconds: (performance.now() - start) / 1000 };
-        $('song-status').textContent = `${file.name} · ${clock(song.durationMs)} long · decoded in ${song.decodeSeconds.toFixed(1)} s`;
+        const start = performance.now(), buffer = await file.arrayBuffer(), { pcm, rate } = await decodeSong(buffer);
+        song = { file, buffer, pcm, rate, durationMs: pcm.length / rate * 1000, decodeSeconds: (performance.now() - start) / 1000 };
+        $('song-status').textContent = `${file.name} · ${clock(song.durationMs)} long · ${song.rate} Hz · decoded in ${song.decodeSeconds.toFixed(1)} s`;
         const title = field('title');
         if (!title.value || title.dataset.auto === 'true') {
             title.value = file.name.replace(/\.[^.]+$/, '');
@@ -264,7 +265,7 @@ $('generate-button').addEventListener('click', () => {
     update();
     $('run-status').textContent = `Generating on ${providerName(provider)}…`;
     const request: GenerateChartRequest = { audio: { asset_id: song.file.name }, star: job.star, seed, controls: { sections: requests }, title, ...(artist ? { artist } : {}) };
-    worker!.postMessage({ type: 'generate', mel: song.mel, beatthis: song.beatthis, request, audio: { name: song.file.name, bytes: new Uint8Array(song.buffer) } });
+    worker!.postMessage({ type: 'generate', pcm: song.pcm, rate: song.rate, request, audio: { name: song.file.name, bytes: new Uint8Array(song.buffer) } });
 });
 
 function markPhase(next: number) {
