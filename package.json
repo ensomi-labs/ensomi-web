@@ -19,6 +19,7 @@
     "typecheck": "tsc -p packages/runtime",
     "typecheck:site": "tsc -p site",
     "check:pages": "node site/check-pages.mjs",
+    "test:site": "node --import tsx --test site/*.test.mjs",
     "serve:site": "node site/serve.mjs"
   }
 }

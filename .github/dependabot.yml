@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Security updates only: a limit of 0 turns version updates off and leaves security updates on.
+  # The `dependabot` job in workflows/ci.yml merges them when the checks pass.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    ignore:
+      # Each Ensomi consumer pins an exact runtime release (ensomi-model docs/ecosystem.md); it moves
+      # with that release, not on its own.
+      - dependency-name: "@ensomi/runtime"
+      # Must match the ONNX Runtime URL in site/worker.ts, which Dependabot does not change.
+      - dependency-name: onnxruntime-web
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
