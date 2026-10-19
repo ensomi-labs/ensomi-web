@@ -28,9 +28,11 @@ npm run serve:site -- 8080 ../ensomi-model/artifacts/release-r2/bulk/hf/ensomi-r
 
 ## Checks and dependency updates
 
-`.github/workflows/ci.yml` runs on every pull request and every push to `main`, on Node 24: `npm ci`, `typecheck:site`, `typecheck`, `build:site`, `check:pages` and `test:site` (the `site/*.test.mjs` unit tests). The browser tests in `packages/runtime/tests/browser/` need Chrome, the model and the dataset songs, and are run by hand.
+`.github/workflows/ci.yml` runs on every pull request, on pushes to `main` and by hand (Run workflow), on Node 24: `npm ci`, `typecheck:site`, `typecheck`, `build:site`, `check:pages` and `test:site` (the `site/*.test.mjs` unit tests). The browser tests in `packages/runtime/tests/browser/` need Chrome, the model and the dataset songs, and are run by hand.
 
-Dependabot (`.github/dependabot.yml`) opens pull requests for npm security updates, with version updates off, and monthly for the workflow's actions. The `dependabot` job in `ci.yml` merges an npm one once its checks pass, unless it moves a major version or someone other than Dependabot pushed to it. Dependabot never updates `@ensomi/runtime`, whose exact pin moves with a runtime release, or `onnxruntime-web`, whose version must match the ONNX Runtime URL in `site/worker.ts`. Security updates run only while Dependabot security updates are on in the repository's settings (Code security). A merged update reaches ensomi.app with the next deploy.
+Dependabot (`.github/dependabot.yml`) opens pull requests for npm security updates, with version updates off, and monthly for the workflow's actions. The `dependabot` job in `ci.yml` merges a patch or minor npm security update of one package once its checks pass, and only the commit they ran on; a major version, a grouped update or a later push waits for a person. GitHub starts no workflow for the job's own merges, so `main` after them is checked only by the next run: run CI by hand on `main` before deploying. Security updates run only while Dependabot security updates are on in the repository's settings (Code security). A merged update reaches ensomi.app with the next deploy.
+
+Dependabot never updates `@ensomi/runtime`, whose exact pin moves with a runtime release, or `onnxruntime-web`, whose version must match the ONNX Runtime URL in `site/worker.ts`. A vulnerable package that `@ensomi/runtime` pins exactly is fixed only by a runtime release: Dependabot's bump of the same package here leaves the runtime's own copy in the lockfile.
 
 ## Deploy
 
