@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "esbuild": "0.25.9",
-    "fflate": "0.8.2",
+    "fflate": "0.8.3",
     "onnxruntime-web": "1.23.2",
     "playwright": "1.54.2",
     "tsx": "4.20.6",
