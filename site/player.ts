@@ -55,6 +55,14 @@ function lowerBound(values: number[], x: number) {
 }
 
 const clamp = (x: number, lo: number, hi: number) => Math.min(Math.max(x, lo), hi);
+const MIN_SKIP_MS = 3000;
+
+/** Start with the first note entering the top of the lanes, but only when it skips a real intro. */
+export function getPreviewStartMs(firstNoteMs: number | undefined, laneHeight: number, speed: number) {
+    if (firstNoteMs === undefined || laneHeight <= 0 || speed <= 0) return 0;
+    const at = firstNoteMs - JUDGE * laneHeight / speed * 1000;
+    return at >= MIN_SKIP_MS ? at : 0;
+}
 
 export class Player {
     speed = 720;
@@ -127,6 +135,7 @@ export class Player {
         this.track = track;
         const objects = track.chart.objects, end = track.chart.duration_ms;
         this.starts = objects.map(o => o.start_ms);
+        const previewStartMs = getPreviewStartMs(this.starts[0], this.lanes.clientHeight, this.speed);
         this.longest = Math.max(0, ...objects.map(o => (o.end_ms ?? o.start_ms) - o.start_ms));
         // Beat and bar lines from the timing points; the first segment also extends back to 0.
         this.beats = [];
@@ -141,7 +150,7 @@ export class Player {
         this.density = new Array(DENSITY_BINS).fill(0);
         for (const o of objects) this.density[Math.min(DENSITY_BINS - 1, Math.floor(o.start_ms / end * DENSITY_BINS))]++;
         this.audio.pause();
-        this.seek(0);
+        this.seek(previewStartMs);
     }
 
     private frame = () => {

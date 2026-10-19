@@ -426,10 +426,10 @@ function showResult(result: GenerationResult) {
     }));
     $('times-total').textContent = t.generatedIn(detail.seconds.total.toFixed(1));
 
+    $('result').hidden = false;
     player.audio.src = audio;
     player.load({ chart: result.chart, segments: detail.rows.segments, sections: done.sections });
     $('identity').textContent = [done.title, done.artist, `ensomi R2 s${done.seed}`].filter(Boolean).join(' · ');
-    $('result').hidden = false;
     $('run-status').textContent = t.doneIn(detail.seconds.total.toFixed(1));
     update();
     $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
