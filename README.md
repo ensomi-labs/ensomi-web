@@ -26,6 +26,14 @@ npm run serve:site -- 8080 ../ensomi-model/artifacts/release-r2/bulk/hf/ensomi-r
 
 `?model=<url>` points the page at any folder that holds `runtime.json` and the ONNX files; `?backend=wasm` skips WebGPU. Model files are cached by URL under the cache name in `site/worker.ts`; change that name when the model URL in `site/app.ts` or the files behind a URL change. Loading deletes the caches of other names.
 
+## Checks and dependency updates
+
+`.github/workflows/ci.yml` runs on every pull request, on pushes to `main` and by hand (Run workflow), on Node 24: `npm ci`, `typecheck:site`, `typecheck`, `build:site`, `check:pages` and `test:site` (the `site/*.test.mjs` unit tests). The browser tests in `packages/runtime/tests/browser/` need Chrome, the model and the dataset songs, and are run by hand.
+
+Dependabot (`.github/dependabot.yml`) opens pull requests for npm security updates, with version updates off, and monthly for the workflow's actions. The `dependabot` job in `ci.yml` merges a patch or minor npm security update of one package once its checks pass, and only the commit they ran on; a major version, a grouped update or a later push waits for a person. GitHub starts no workflow for the job's own merges, so `main` after them is checked only by the next run: run CI by hand on `main` before deploying. Security updates run only while Dependabot security updates are on in the repository's settings (Code security). A merged update reaches ensomi.app with the next deploy.
+
+Dependabot never updates `@ensomi/runtime`, whose exact pin moves with a runtime release, or `onnxruntime-web`, whose version must match the ONNX Runtime URL in `site/worker.ts`. A vulnerable package that `@ensomi/runtime` pins exactly is fixed only by a runtime release: Dependabot's bump of the same package here leaves the runtime's own copy in the lockfile.
+
 ## Deploy
 
 `wrangler deploy` from the repository root, logged in to the Cloudflare account that holds `ensomi.app`. Wrangler runs `npm run build:site` first (`build.command` in `wrangler.jsonc`).
