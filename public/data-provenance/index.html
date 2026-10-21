@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ensomi R2: data provenance</title>
+<meta name="description" content="Which charts and music ensomi R2 1.0 and 1.0.1 were built from and what for, what the audit shows, what we decided, and how to ask for a correction.">
+<meta name="theme-color" content="#1c1525">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:title" content="ensomi R2: data provenance">
+<meta property="og:description" content="Which charts and music R2 was built from and what for, what the audit shows, what we decided, and how to ask for a correction.">
+<meta property="og:image" content="https://ensomi.app/img/icon.webp">
+<meta property="og:url" content="https://ensomi.app/data-provenance/">
+<link rel="alternate" hreflang="en" href="https://ensomi.app/data-provenance/">
+<link rel="alternate" hreflang="ja" href="https://ensomi.app/ja/data-provenance/">
+<link rel="alternate" hreflang="zh-CN" href="https://ensomi.app/zh/data-provenance/">
+<link rel="alternate" hreflang="x-default" href="https://ensomi.app/data-provenance/">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="hero-band">
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="/"><img src="/mark.png" width="36" height="36" alt="">ensomi</a>
+      <nav class="page-nav" aria-label="Sections">
+        <a href="#used">What R2 used</a>
+        <a href="#numbers">Numbers</a>
+        <a href="#audit">Audit</a>
+        <a href="#decision">Decision</a>
+        <a href="#tables">Tables</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <nav class="langs" aria-label="Language">
+        <a href="/data-provenance/" hreflang="en" lang="en" aria-current="page">English</a>
+        <a href="/ja/data-provenance/" hreflang="ja" lang="ja">日本語</a>
+        <a href="/zh/data-provenance/" hreflang="zh-CN" lang="zh-CN">中文</a>
+      </nav>
+      <div class="icons">
+        <a class="icon-link hf" href="https://huggingface.co/sed-i/ensomi-r2" aria-label="The model on Hugging Face" title="Hugging Face"></a>
+        <a class="icon-link gh" href="https://github.com/ensomi-labs" aria-label="ensomi-labs on GitHub" title="GitHub"></a>
+      </div>
+    </header>
+    <div class="doc-hero">
+      <p class="eyebrow">R2 · data provenance</p>
+      <h1>Where R2's data comes from</h1>
+      <p class="lede">Which charts and music R2 was built from and what for, what our audit shows, what we decided, and how to ask for a correction.</p>
+      <ul class="dates">
+        <li>Last updated <time datetime="2026-10-21">2026-10-21</time></li>
+        <li>Audit evidence: snapshot of <time datetime="2026-10-17">2026-10-17</time></li>
+        <li>Policy statement: <time datetime="2026-10-21">2026-10-21</time></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<div class="wrap">
+  <main id="main" class="doc">
+    <section id="scope">
+      <p>This page covers ensomi R2 1.0 and 1.0.1, not R1 or any earlier model. It summarises our <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance.md">data provenance</a> report, which has the details, and claims nothing beyond it.</p>
+    </section>
+
+    <section id="used">
+      <h2>What R2 used, and what for</h2>
+      <p>R2 was built from osu!'s ranked and loved 4K charts from 2 to 6 stars. We do not distribute these charts or their audio.</p>
+      <ul>
+        <li><b>Training.</b> 11,368 eligible charts trained the rows model, which learns where notes start from the music and the mappers' timing, and R2, which arranges the notes without hearing the audio.</li>
+        <li><b>Corpus prior.</b> It takes a new chart's character from similar training charts. The published <code>prior.json</code> keeps one row of numbers, without names, for each training chart.</li>
+        <li><b>Calibration.</b> The published playability calibration and scope table are derived from the training charts.</li>
+        <li><b>Timing.</b> The mappers' tempo, beat grids and notes were references for choosing how R2 fits a beat grid to audio.</li>
+        <li><b>Evaluation.</b> Some charts were references for measuring and listening to generated charts.</li>
+        <li><b>Previews.</b> The four published previews use four source songs' audio. Their source mappers, named in the report, did not author the generated charts.</li>
+        <li><b>Beat tracking.</b> R2 uses <a href="https://github.com/CPJKU/beat_this">BeatThis</a> <code>final0</code> as its authors trained it; the musicians in its training data are not fully recorded.</li>
+      </ul>
+      <p>R2 is not built to imitate any particular mapper or artist: its models receive no mapper or artist names or IDs, were trained from scratch on the training charts as one pool, and no training draw, fine-tune, playability limit or evaluation measure is set per mapper or artist (<a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance.md#mapper-and-artist-style">evidence and limits</a>).</p>
+    </section>
+
+    <section id="numbers">
+      <h2>The numbers, and what they are not</h2>
+      <p>Counts of the eligible training charts on <time datetime="2026-10-17">2026-10-17</time>. Labels are metadata claims, not verified people or rights holders.</p>
+      <dl class="figures">
+        <div><dt>11,368 charts</dt><dd>One chart is one difficulty, one <code>.osu</code> file.</dd></div>
+        <div><dt>1,129 <code>Creator</code> labels</dt><dd>Mapper names as written. Aliases are not merged or collaborations split, and guest mappers may be missing.</dd></div>
+        <div><dt>2,445 <code>Artist</code> labels</dt><dd>Artist names as written, not a list of composers, performers or rights holders.</dd></div>
+        <div><dt>5,026 audio hashes</dt><dd>Audio files by their exact bytes, not songs.</dd></div>
+        <div><dt>4,167 groups</dt><dd>Groups that keep related sources in the same data partition, not songs.</dd></div>
+      </dl>
+      <p>Eligible means in the pool that training drew from; whether or how often a chart was drawn is not recorded. The frozen inventory of 22,066 charts that the audit started from is not the training population.</p>
+    </section>
+
+    <section id="audit">
+      <h2>What the audit shows, and what it does not</h2>
+      <p>The audit establishes attribution and stage membership: which charts and labels each recorded stage of R2 used. It is not a rights clearance or a complete review of acquisition and permissions. It leaves open who is behind each label, which charts training actually drew, and the full list of musicians in BeatThis's training data.</p>
+    </section>
+
+    <section id="decision">
+      <h2>What we decided</h2>
+      <p class="small muted">Policy statement of <time datetime="2026-10-21">2026-10-21</time></p>
+      <p>The released models <code>r2-1.0</code> and <code>r2-1.0.1</code> remain available with this disclosure. Future released models will use data covered by permissive licences or explicit permission suitable for the intended training and release uses; their data review considers, as applicable, inherited weights, upstream components, distillation and derived data. The audit does not show that R2's data meets this policy.</p>
+      <h3>Enrollment and opt-out</h3>
+      <p>We are exploring enrollment (opt-in) and opt-out, including a convenient way to verify that a decision comes from the rights holder. Nothing is in place yet, and we do not claim to remove what a released model has already learned.</p>
+    </section>
+
+    <section id="tables">
+      <h2>Check the tables</h2>
+      <p><a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance/stage_counts.csv"><code>stage_counts.csv</code></a> gives each stage's counts, and <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance/README.md">its README</a> explains them. The tables of every <code>Creator</code> and <code>Artist</code> label are not published yet; once they are, filter <code>stage</code> (<code>r2_cache_fit_train</code> for the training charts) and search <code>raw_label</code>, also for part of a name. Stages overlap: never add their counts.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Corrections and questions</h2>
+      <p>To correct an attribution, ask how a chart or song was used, or say you are interested in enrollment or opt-out, open an issue on GitHub, in English, Japanese or Chinese.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/ensomi-labs/ensomi-model/issues/new?template=data-provenance.yml">Open a data provenance issue</a>
+      </div>
+      <p class="contact-note">Issues are public: include no personal data or audio. An issue does not by itself remove anything from a released model.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>ensomi R2, releases <code>r2-1.0</code> and <code>r2-1.0.1</code>. <a href="https://huggingface.co/sed-i/ensomi-r2">Model</a> · <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_system.md">R2 report</a> · <a href="https://github.com/ensomi-labs">ensomi-labs</a></p>
+  </footer>
+</div>
+</body>
+</html>
