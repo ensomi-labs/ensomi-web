@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ensomi R2：数据来源</title>
+<meta name="description" content="ensomi R2 1.0 和 1.0.1 用了哪些谱面和音乐、用来做什么，审计能说明什么、不能说明什么，我们做了什么决定，以及如何申请更正。">
+<meta name="theme-color" content="#1c1525">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:title" content="ensomi R2：数据来源">
+<meta property="og:description" content="R2 用了哪些谱面和音乐、用来做什么，审计能说明什么、不能说明什么，我们做了什么决定，以及如何申请更正。">
+<meta property="og:image" content="https://ensomi.app/img/icon.webp">
+<meta property="og:url" content="https://ensomi.app/zh/data-provenance/">
+<link rel="alternate" hreflang="en" href="https://ensomi.app/data-provenance/">
+<link rel="alternate" hreflang="ja" href="https://ensomi.app/ja/data-provenance/">
+<link rel="alternate" hreflang="zh-CN" href="https://ensomi.app/zh/data-provenance/">
+<link rel="alternate" hreflang="x-default" href="https://ensomi.app/data-provenance/">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<div class="hero-band">
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="/zh/"><img src="/mark.png" width="36" height="36" alt="">ensomi</a>
+      <nav class="page-nav" aria-label="页面导航">
+        <a href="#used">用了什么</a>
+        <a href="#numbers">数字</a>
+        <a href="#audit">审计</a>
+        <a href="#decision">决定</a>
+        <a href="#tables">表格</a>
+        <a href="#contact">联系</a>
+      </nav>
+      <nav class="langs" aria-label="语言">
+        <a href="/data-provenance/" hreflang="en" lang="en">English</a>
+        <a href="/ja/data-provenance/" hreflang="ja" lang="ja">日本語</a>
+        <a href="/zh/data-provenance/" hreflang="zh-CN" lang="zh-CN" aria-current="page">中文</a>
+      </nav>
+      <div class="icons">
+        <a class="icon-link hf" href="https://huggingface.co/sed-i/ensomi-r2" aria-label="Hugging Face 上的模型" title="Hugging Face"></a>
+        <a class="icon-link gh" href="https://github.com/ensomi-labs" aria-label="GitHub 上的 ensomi-labs" title="GitHub"></a>
+      </div>
+    </header>
+    <div class="doc-hero">
+      <p class="eyebrow">R2 · 数据来源</p>
+      <h1>R2 的数据从何而来</h1>
+      <p class="lede">ensomi R2 用了哪些谱面和音乐、用来做什么；我们的审计能说明什么、不能说明什么；我们做了什么决定；以及如何申请更正。</p>
+      <ul class="dates">
+        <li>最后更新 <time datetime="2026-10-21">2026-10-21</time></li>
+        <li>审计证据：<time datetime="2026-10-17">2026-10-17</time> 的快照</li>
+        <li>政策声明：<time datetime="2026-10-21">2026-10-21</time></li>
+      </ul>
+      <p class="translated">本页为译文，内容以<a href="/data-provenance/" hreflang="en">英文版</a>为准。</p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <main id="main" class="doc">
+    <section id="scope">
+      <p>本页只涉及 ensomi R2 1.0 和 1.0.1，即<a href="https://huggingface.co/sed-i/ensomi-r2">模型卡</a>上的版本 <code>r2-1.0</code> 和 <code>r2-1.0.1</code>，不涉及 R1 或其他更早的模型。本页是我们的<a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance.md">数据来源报告</a>（英文，<a href="https://github.com/ensomi-labs/ensomi-model/commits/main/docs/research/r2_data_provenance.md">修改记录</a>）的摘要，详细内容见报告。</p>
+    </section>
+
+    <section id="used">
+      <h2>R2 用了什么，用来做什么</h2>
+      <p>R2 基于 osu! 上 2 到 6 星的 Ranked 与 Loved osu!mania 4K 谱面构建。我们不随模型分发这些谱面及其音频。下面各部分如何配合，见 <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_system.md">R2 报告</a>（英文）。</p>
+      <ul>
+        <li><b>训练。</b>11,368 张符合训练条件的谱面训练了两个模型。行模型根据音乐特征，以及谱师自己的时间轴和音符起始位置，学习音符从哪里开始。R2 从谱面的行中学习如何编排音符；它听不到音频。两个模型都是从零开始训练的，没有使用更早模型的权重。</li>
+        <li><b>语料先验（corpus prior）。</b>它从音符分布相似的训练谱面中，为新谱面取得风格，比如长条的多少。随模型发布的 <code>prior.json</code> 为每张训练谱面保留一行数字，不含名字；即使没有名字，它仍然来自这些谱面。</li>
+        <li><b>校准。</b>随模型发布的可玩性校准和 scope 表，存放的是由训练谱面得出的数字。</li>
+        <li><b>时间轴。</b>谱师的速度、节拍网格和音符位置被用作参照，用来选定 R2 如何把节拍网格对齐到歌曲的音频。这确定的是方法上的选择，没有因此训练额外的神经网络模型。</li>
+        <li><b>评估与试听。</b>部分谱面被选作评估面板中衡量生成谱面的参照，以及试听对比的参照。</li>
+        <li><b>预览。</b>随模型发布的四个预览使用了四首源歌曲的音频。报告列出了对应源谱面的谱师，但他们不是生成出来的编排的作者。</li>
+        <li><b>节拍检测。</b>R2 原样使用 <a href="https://github.com/CPJKU/beat_this">BeatThis</a> 的 <code>final0</code>，这是由其作者自己预训练的节拍检测器，我们没有再训练它。它的训练数据来自其作者自己的来源，这些数据中音乐人的记录并不完整。</li>
+      </ul>
+    </section>
+
+    <section id="numbers">
+      <h2>这些数字，以及它们不代表什么</h2>
+      <p>以下数字针对 11,368 张符合训练条件的谱面，依据审计在 <time datetime="2026-10-17">2026-10-17</time> 的记录。标签是谱面元数据中的声明，不是经过核实的人或权利人。</p>
+      <dl class="figures">
+        <div><dt>11,368 张谱面</dt><dd>一张谱面就是一个难度，即一个不重复的 <code>.osu</code> 文件。</dd></div>
+        <div><dt>1,129 个 <code>Creator</code> 标签</dt><dd>谱面中写明的不同谱师名。别名没有合并，合作署名没有拆分，客串难度的作者可能缺失。</dd></div>
+        <div><dt>2,445 个 <code>Artist</code> 标签</dt><dd>谱面中写明的不同艺术家名。它不是作曲者、演奏者或权利人的名单；“Various Artists” 也算一个标签。</dd></div>
+        <div><dt>5,026 个音频哈希</dt><dd>以记录下来的、对文件确切字节计算的哈希区分的音频文件。不是歌曲数：同一首歌的不同文件会分别计数。</dd></div>
+        <div><dt>4,167 个分组</dt><dd>用来把相关来源保持在同一数据划分中的分组。同样不是歌曲数。</dd></div>
+      </dl>
+      <p>“符合训练条件”是指谱面属于训练从中抽取的那一池谱面。记录无法说明某张谱面是否被抽到、被抽到几次，或者它对模型有什么贡献。审计起点的完整冻结清单共有 22,066 张谱面，但它不是训练所用的集合。</p>
+    </section>
+
+    <section id="audit">
+      <h2>审计能说明什么，不能说明什么</h2>
+      <p>审计确定了 R2 每个有记录的阶段各自使用了哪些谱面，以及哪些 <code>Creator</code> 和 <code>Artist</code> 标签，范围从训练、校准到评估和预览。每个阶段的记录都通过谱面文件的确切哈希与谱面对应，所有记录都对上了。</p>
+      <p>以下问题仍未解决：</p>
+      <ul>
+        <li>权利清理：审计不能证明有使用这些谱面或音乐的许可；</li>
+        <li>对谱面和音乐的获取途径以及许可的完整审查；</li>
+        <li>标签背后的谱师和音乐人究竟是谁；</li>
+        <li>训练实际抽到了哪些谱面、抽到几次；</li>
+        <li>BeatThis 训练数据中音乐人的完整名单。</li>
+      </ul>
+    </section>
+
+    <section id="decision">
+      <h2>我们的决定</h2>
+      <p class="small muted">政策声明：<time datetime="2026-10-21">2026-10-21</time></p>
+      <p>已发布的模型 <code>r2-1.0</code> 和 <code>r2-1.0.1</code> 将继续提供，并附上这份数据来源说明。</p>
+      <p>今后发布的模型将使用采用宽松许可、或获得明确许可的数据，且许可须适合预期的训练和发布用途。对这类版本的数据审查不只看训练谱面，还会视情况涵盖继承的权重、预训练节拍检测器这类上游组件、从更早模型的蒸馏，以及先验和校准表这类派生数据。</p>
+      <p>这一政策与审计是分开的：审计并不能说明 R2 背后的数据满足这一政策。</p>
+      <h3>加入与退出</h3>
+      <p>我们正在探索贡献者加入（opt-in）和退出（opt-out）申请，包括一种方便的方式，用来核实某个决定确实出自相关谱面或音乐的权利人。目前还没有这样的流程，它对现有模型有何影响也尚未确定。我们不声称能从已发布的模型中去除它已经从某个来源学到的东西。</p>
+    </section>
+
+    <section id="tables">
+      <h2>在表格中查询</h2>
+      <p><a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance/stage_counts.csv"><code>stage_counts.csv</code></a> 列出每个阶段的谱面、分组、音频哈希和标签的数量，<a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance/README.md">表格的 README</a>（英文）解释了每一列。两张标签表 <code>creator_labels_by_stage.csv</code> 和 <code>artist_labels_by_stage.csv</code> 将逐阶段列出每个原样的 <code>Creator</code> 和 <code>Artist</code> 标签，目前尚未发布。</p>
+      <p>发布后，要查找一个名字，请先按 <code>stage</code> 筛选（例如筛选到 <code>r2_cache_fit_train</code>，即 11,368 张训练谱面），再搜索 <code>raw_label</code>。别名没有合并、合作署名没有拆分，所以也请搜索名字的一部分。开发集、评估面板和预览等其他阶段各有自己的 ID。各阶段相互重叠，请不要把它们的数量相加。</p>
+    </section>
+
+    <section id="contact">
+      <h2>更正与提问</h2>
+      <p>如需更正署名、询问某张谱面或某首歌如何被使用，或表示对加入与退出流程感兴趣，请在 GitHub 上提交数据来源 issue。英文、日文和中文都可以。</p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/ensomi-labs/ensomi-model/issues/new?template=data-provenance.yml">提交数据来源 issue</a>
+      </div>
+      <p class="contact-note">issue 是公开的：请不要附上个人信息或音频。提供谱面链接或 ID，或表格中显示的标签即可。提交 issue 本身不会从已发布的模型中移除任何内容。</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>ensomi R2，版本 <code>r2-1.0</code> 和 <code>r2-1.0.1</code>。<a href="https://huggingface.co/sed-i/ensomi-r2">模型</a> · <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance.md">数据来源报告</a> · <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_system.md">R2 报告</a> · <a href="https://github.com/ensomi-labs">ensomi-labs</a></p>
+    <p>本页内容以 R2 数据来源报告为准，不作超出报告的声明。</p>
+  </footer>
+</div>
+</body>
+</html>

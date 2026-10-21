@@ -59,7 +59,7 @@
 }
 :root:lang(zh) [lang|="ja"] { font-family: "SF Pro Rounded", "Hiragino Maru Gothic ProN", "M PLUS Rounded 1c", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif; }
 /* Japanese headings break between phrases where the browser can find them. */
-:root:lang(ja) :is(h2, h3, .lede, .eyebrow) { word-break: auto-phrase; }
+:root:lang(ja) :is(h1, h2, h3, .lede, .eyebrow) { word-break: auto-phrase; }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; background: var(--bg); }
@@ -237,6 +237,24 @@ output { color: var(--text); font-variant-numeric: tabular-nums; }
 .aims li::before { content: counter(aim); grid-row: span 2; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50% 50% 50% 22%; background: color-mix(in srgb, var(--purple) 35%, var(--surface)); border: 2px solid var(--purple); color: var(--text); font-size: var(--step--1); font-weight: 700; }
 .aims h3 { font: 650 var(--step-0)/1.3 var(--font-round); margin: 0.2rem 0 0; }
 .aims p { color: var(--muted); margin: 0; }
+
+/* reading pages (data-provenance/): the home page's header and type, one column of prose, no generator */
+.doc-hero { padding: var(--s5) 0 var(--s4); }
+.doc-hero h1 { font: 700 clamp(2rem, 1.3rem + 2.6vw, 2.9rem)/1.12 var(--font-round); letter-spacing: -0.02em; max-width: 22ch; text-wrap: balance; }
+.dates { list-style: none; padding: 0; margin: var(--s3) 0 0; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); color: var(--muted); font-size: var(--step--1); }
+.translated { margin: var(--s2) 0 0; color: var(--muted); font-size: var(--step--1); }
+.doc > section { padding-top: var(--s5); max-width: var(--measure); }
+.doc > section:first-child { padding-top: var(--s4); }
+.doc ul { padding-left: 1.25em; margin: 0 0 var(--s3); }
+.doc li { margin-bottom: var(--s2); }
+.doc h2 { text-wrap: balance; }
+.doc :is(code, time) { white-space: nowrap; }
+.doc h3 { font: 650 var(--step-1)/1.25 var(--font-round); margin: var(--s4) 0 var(--s2); }
+.figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: var(--s3); margin: var(--s4) 0; }
+.figures > div { background: var(--surface); border-radius: var(--radius-soft); padding: var(--s3) var(--s4); }
+.figures dt { font: 700 var(--step-1)/1.25 var(--font-round); font-variant-numeric: tabular-nums; }
+.figures dd { margin: var(--s1) 0 0; color: var(--muted); font-size: var(--step--1); }
+.contact-note { margin-top: var(--s4); }
 
 /* code */
 pre { background: var(--stage); color: #ece6f4; border: 1px solid var(--stage-line); border-radius: var(--radius); padding: var(--s3); overflow-x: auto; line-height: 1.55; margin: var(--s3) 0; max-width: 100%; }
