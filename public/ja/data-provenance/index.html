@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ensomi R2：データの出所</title>
-<meta name="description" content="ensomi R2 1.0 と 1.0.1 がどの譜面と音楽から何のために作られたか、監査でわかることとわからないこと、私たちが決めたこと、訂正を依頼する方法。">
+<meta name="description" content="ensomi R2 1.0 と 1.0.1 がどの譜面と音楽から何のために作られたか、監査でわかること、私たちが決めたこと、訂正を依頼する方法。">
 <meta name="theme-color" content="#1c1525">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:title" content="ensomi R2：データの出所">
-<meta property="og:description" content="R2 がどの譜面と音楽から何のために作られたか、監査でわかることとわからないこと、私たちが決めたこと、訂正を依頼する方法。">
+<meta property="og:description" content="R2 がどの譜面と音楽から何のために作られたか、監査でわかること、私たちが決めたこと、訂正を依頼する方法。">
 <meta property="og:image" content="https://ensomi.app/img/icon.webp">
 <meta property="og:url" content="https://ensomi.app/ja/data-provenance/">
 <link rel="alternate" hreflang="en" href="https://ensomi.app/data-provenance/">
@@ -47,7 +47,7 @@
     <div class="doc-hero">
       <p class="eyebrow">R2 · データの出所</p>
       <h1>R2 のデータはどこから来たか</h1>
-      <p class="lede">ensomi R2 がどの譜面と音楽から、何のために作られたか。監査でわかることとわからないこと、私たちが決めたこと、そして訂正を依頼する方法をまとめます。</p>
+      <p class="lede">R2 がどの譜面と音楽から何のために作られたか、監査でわかること、私たちが決めたこと、そして訂正を依頼する方法。</p>
       <ul class="dates">
         <li>最終更新 <time datetime="2026-10-21">2026-10-21</time></li>
         <li>監査の証拠：<time datetime="2026-10-17">2026-10-17</time> 時点のスナップショット</li>
@@ -61,78 +61,67 @@
 <div class="wrap">
   <main id="main" class="doc">
     <section id="scope">
-      <p>このページが対象とするのは ensomi R2 1.0 と 1.0.1、つまり<a href="https://huggingface.co/sed-i/ensomi-r2">モデルカード</a>のリリース <code>r2-1.0</code> と <code>r2-1.0.1</code> だけで、R1 などそれ以前のモデルは含みません。内容は、詳しい資料である<a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance.md">データの出所に関する報告書</a>（英語、<a href="https://github.com/ensomi-labs/ensomi-model/commits/main/docs/research/r2_data_provenance.md">変更履歴</a>）を要約したものです。</p>
+      <p>このページが対象とするのは ensomi R2 1.0 と 1.0.1 だけで、R1 などそれ以前のモデルは含みません。内容は、詳しい資料である<a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance.md">データの出所</a>の報告書（英語）を要約したもので、それを超えることは主張しません。</p>
     </section>
 
     <section id="used">
       <h2>R2 が使ったもの、その目的</h2>
-      <p>R2 は、osu! の Ranked と Loved の osu!mania 4K 譜面（★2〜6）から作られました。これらの譜面と音声は、モデルと一緒には配布していません。以下の各部分がどう組み合わさるかは <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_system.md">R2 レポート</a>（英語）にあります。</p>
+      <p>R2 は、osu! の Ranked と Loved の 4K 譜面（★2〜6）から作られました。これらの譜面と音声は配布していません。</p>
       <ul>
-        <li><b>学習。</b>学習対象の 11,368 譜面で、二つのモデルを学習しました。行モデルは、音楽の特徴量と、マッパー自身のタイミングとノーツの始まる位置から、ノーツがどこで始まるかを学びます。R2 は譜面の行から、ノーツの配置の仕方を学びます。R2 は音声を聴いていません。どちらも、以前のモデルの重みを使わず、ゼロから学習しました。</li>
-        <li><b>コーパス事前分布（corpus prior）。</b>新しい譜面のキャラクター（たとえばロングノーツの多さ）を、ノーツの置かれ方が似ている学習用譜面から取ります。公開している <code>prior.json</code> には、学習用譜面 1 つにつき 1 行の数値が、名前なしで入っています。名前がなくても、もとの譜面に由来することに変わりはありません。</li>
-        <li><b>キャリブレーション。</b>モデルと一緒に公開している、プレイアビリティ（遊べること）のためのキャリブレーションとスコープ表には、学習用譜面から導いた数値が入っています。</li>
-        <li><b>タイミング。</b>マッパーのテンポ、ビートグリッド、ノーツの位置を基準にして、R2 が曲の音声にビートグリッドを合わせる方法を選びました。決めたのは手法の選択で、追加のニューラルモデルは学習していません。</li>
-        <li><b>評価と試聴。</b>一部の譜面は、生成した譜面を測る評価パネルや、聴き比べの参照として選ばれました。</li>
-        <li><b>プレビュー。</b>モデルと一緒に公開している 4 つのプレビューは、元になった 4 曲の音声を使っています。元譜面のマッパーは報告書に記載していますが、生成された配置の作者ではありません。</li>
-        <li><b>ビート検出。</b>R2 は、作者たち自身が事前学習したビート検出器 <a href="https://github.com/CPJKU/beat_this">BeatThis</a> の <code>final0</code> を、追加学習せずにそのまま使います。その学習データは作者たち自身が用意したもので、そのデータに含まれる音楽家の記録は不完全です。</li>
+        <li><b>学習。</b>学習対象の 11,368 譜面で、行モデルと R2 を学習しました。行モデルは音楽とマッパーのタイミングからノーツがどこで始まるかを学び、R2 は音声を聴かずにノーツを配置します。</li>
+        <li><b>コーパス事前分布。</b>新しい譜面のキャラクターを、似ている学習用譜面から取ります。公開している <code>prior.json</code> には、学習用譜面 1 つにつき 1 行の数値が、名前なしで入っています。</li>
+        <li><b>キャリブレーション。</b>公開しているプレイアビリティのキャリブレーションとスコープ表は、学習用譜面から導いたものです。</li>
+        <li><b>タイミング。</b>マッパーのテンポ、ビートグリッド、ノーツを基準にして、R2 が音声にビートグリッドを合わせる方法を選びました。</li>
+        <li><b>評価。</b>一部の譜面は、生成した譜面を測ったり聴き比べたりするときの参照になりました。</li>
+        <li><b>プレビュー。</b>公開している 4 つのプレビューは、元になった 4 曲の音声を使っています。報告書に記載した元譜面のマッパーは、生成された譜面の作者ではありません。</li>
+        <li><b>ビート検出。</b>R2 は <a href="https://github.com/CPJKU/beat_this">BeatThis</a> の <code>final0</code> を、作者たちが学習したまま使います。その学習データに含まれる音楽家は、すべては記録されていません。</li>
       </ul>
+      <p>R2 は、特定のマッパーやアーティストをまねるようには作られていません。モデルはマッパーやアーティストの名前も ID も受け取らず、学習用譜面をひとまとまりとしてゼロから学習しました。学習での抜き出し、ファインチューニング、プレイアビリティの制限、評価の指標のどれも、マッパーやアーティストごとには設定されていません（<a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance.md#mapper-and-artist-style">根拠と限界</a>、英語）。</p>
     </section>
 
     <section id="numbers">
       <h2>数字と、それが意味しないこと</h2>
-      <p>以下は、<time datetime="2026-10-17">2026-10-17</time> 時点で監査が確認した、学習対象の 11,368 譜面についての数です。ラベルは譜面のメタデータにある記載で、確認された人物や権利者ではありません。</p>
+      <p><time datetime="2026-10-17">2026-10-17</time> 時点の、学習対象の譜面についての数です。ラベルはメタデータにある記載で、確認された人物や権利者ではありません。</p>
       <dl class="figures">
-        <div><dt>11,368 譜面</dt><dd>譜面とは一つの難易度、つまり重複のない一つの <code>.osu</code> ファイルです。</dd></div>
-        <div><dt><code>Creator</code> ラベル 1,129 件</dt><dd>譜面に書かれたマッパー名の種類数です。別名はまとめず、合作の表記も分けていません。ゲスト難易度の作者が抜けていることもあります。</dd></div>
-        <div><dt><code>Artist</code> ラベル 2,445 件</dt><dd>譜面に書かれたアーティスト名の種類数です。作曲者、演奏者、権利者の一覧ではありません。「Various Artists」も一つのラベルです。</dd></div>
-        <div><dt>音声ハッシュ 5,026 件</dt><dd>ファイルの正確なバイト列について記録されたハッシュで区別した、音声ファイルの数です。曲の数ではありません。同じ曲でも別のファイルなら別に数えます。</dd></div>
-        <div><dt>グループ 4,167 件</dt><dd>関連する元データを同じデータ区分にまとめておくためのグループです。これも曲の数ではありません。</dd></div>
+        <div><dt>11,368 譜面</dt><dd>譜面とは一つの難易度、一つの <code>.osu</code> ファイルです。</dd></div>
+        <div><dt><code>Creator</code> ラベル 1,129 件</dt><dd>書かれたとおりのマッパー名です。別名はまとめず、合作の表記も分けていません。ゲスト難易度の作者が抜けていることもあります。</dd></div>
+        <div><dt><code>Artist</code> ラベル 2,445 件</dt><dd>書かれたとおりのアーティスト名で、作曲者、演奏者、権利者の一覧ではありません。</dd></div>
+        <div><dt>音声ハッシュ 5,026 件</dt><dd>正確なバイト列で区別した音声ファイルの数で、曲の数ではありません。</dd></div>
+        <div><dt>グループ 4,167 件</dt><dd>関連する元データを同じデータ区分にまとめておくためのグループで、曲の数ではありません。</dd></div>
       </dl>
-      <p>学習対象とは、学習が譜面を抜き出すもとになった集合に入っていたという意味です。記録からは、ある譜面が抜き出されたかどうか、何回抜き出されたか、モデルに何をもたらしたかはわかりません。監査の出発点である凍結済みの全目録には 22,066 譜面がありますが、これは学習に使った集合ではありません。</p>
+      <p>学習対象とは、学習が譜面を抜き出すもとになった集合に入っていたという意味で、ある譜面が抜き出されたかどうか、何回抜き出されたかは記録されていません。監査の出発点である凍結済みの全目録の 22,066 譜面は、学習に使った集合ではありません。</p>
     </section>
 
     <section id="audit">
       <h2>監査でわかること、わからないこと</h2>
-      <p>監査では、記録された R2 の段階それぞれが、どの譜面と、どの <code>Creator</code> ラベル・<code>Artist</code> ラベルを使ったかを確かめました。学習とキャリブレーションから、評価とプレビューまでを含みます。各段階の記録は譜面ファイルの正確なハッシュで譜面と結びつけてあり、すべての記録が一致しました。</p>
-      <p>次のことは未解決です。</p>
-      <ul>
-        <li>権利処理。監査は、譜面や音楽を使う許可を確認するものではありません。</li>
-        <li>譜面と音楽の入手経緯と、許諾についての完全な調査。</li>
-        <li>ラベルの背後にいるマッパーや音楽家が誰なのか。</li>
-        <li>学習が実際にどの譜面を何回抜き出したか。</li>
-        <li>BeatThis の学習データに含まれる音楽家の完全な一覧。</li>
-      </ul>
+      <p>監査で確かめたのは帰属表示と段階への所属、つまり記録された R2 の各段階がどの譜面とラベルを使ったかです。権利処理ではなく、入手経緯と許諾についての完全な調査でもありません。ラベルの背後にいるのが誰か、学習が実際にどの譜面を抜き出したか、BeatThis の学習データに含まれる音楽家の完全な一覧は未解決です。</p>
     </section>
 
     <section id="decision">
       <h2>私たちが決めたこと</h2>
       <p class="small muted">方針の声明：<time datetime="2026-10-21">2026-10-21</time></p>
-      <p>公開済みのモデル <code>r2-1.0</code> と <code>r2-1.0.1</code> は、このデータの出所の開示とともに、引き続き公開します。</p>
-      <p>今後公開するモデルには、意図する学習と公開の用途に適した、寛容なライセンスまたは明示的な許可のあるデータを使います。そうしたリリースのデータの確認では、学習用の譜面だけでなく、該当する場合は、引き継いだ重み、事前学習済みのビート検出器のような上流のコンポーネント、以前のモデルからの蒸留、事前分布やキャリブレーション表のような派生データも対象にします。</p>
-      <p>この方針は監査とは別のものです。監査は、R2 のもとになったデータがこの方針を満たすことを示していません。</p>
+      <p>公開済みのモデル <code>r2-1.0</code> と <code>r2-1.0.1</code> は、この開示とともに引き続き公開します。今後公開するモデルには、意図する学習と公開の用途に適した、寛容なライセンスまたは明示的な許可のあるデータを使い、そのデータの確認では、該当する場合、引き継いだ重み、上流のコンポーネント、蒸留、派生データも対象にします。監査は、R2 のデータがこの方針を満たすことを示していません。</p>
       <h3>参加登録とオプトアウト</h3>
-      <p>貢献者の参加登録（オプトイン）とオプトアウトの依頼について検討しています。その決定が、該当する譜面や音楽の権利者からのものだと手軽に確かめる方法も検討に含みます。こうした仕組みはまだ整っておらず、既存のモデルにどう影響するかも決まっていません。公開済みのモデルが、ある元データからすでに学んだことを取り除けるとは主張していません。</p>
+      <p>参加登録（オプトイン）とオプトアウトを検討しています。その決定が権利者からのものだと手軽に確かめる方法も検討に含みます。こうした仕組みはまだなく、公開済みのモデルがすでに学んだことを取り除けるとは主張していません。</p>
     </section>
 
     <section id="tables">
       <h2>表で確かめる</h2>
-      <p><a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance/stage_counts.csv"><code>stage_counts.csv</code></a> には、段階ごとの譜面、グループ、音声ハッシュ、ラベルの数があり、各列の説明は<a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance/README.md">表の README</a>（英語）にあります。二つのラベル表 <code>creator_labels_by_stage.csv</code> と <code>artist_labels_by_stage.csv</code> は、段階ごとに <code>Creator</code> と <code>Artist</code> のラベルを記載どおりにすべて載せるものですが、まだ公開していません。</p>
-      <p>公開後に名前を探すには、<code>stage</code> を絞り込み（たとえば学習用の 11,368 譜面なら <code>r2_cache_fit_train</code>）、<code>raw_label</code> を検索してください。別名はまとめず、合作の表記も分けていないので、名前の一部でも検索してください。開発用の集合、評価パネル、プレビューなど、ほかの段階にはそれぞれの ID があります。段階どうしは重なっているので、数を足し合わせないでください。</p>
+      <p><a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance/stage_counts.csv"><code>stage_counts.csv</code></a> に段階ごとの数があり、<a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance/README.md">その README</a>（英語）で説明しています。<code>Creator</code> と <code>Artist</code> のラベルをすべて載せる表はまだ公開していません。公開後は <code>stage</code> を絞り込み（学習用譜面なら <code>r2_cache_fit_train</code>）、<code>raw_label</code> を名前の一部でも検索してください。段階どうしは重なっているので、数を足し合わせないでください。</p>
     </section>
 
     <section id="contact">
       <h2>訂正と質問</h2>
-      <p>帰属表示の訂正、譜面や曲の使われ方についての質問、参加登録やオプトアウトへの関心は、GitHub のデータの出所に関する issue でお知らせください。英語、日本語、中国語のどれでもかまいません。</p>
+      <p>帰属表示の訂正、譜面や曲の使われ方についての質問、参加登録やオプトアウトへの関心は、GitHub の issue でお知らせください。英語、日本語、中国語のどれでもかまいません。</p>
       <div class="actions">
         <a class="btn primary" href="https://github.com/ensomi-labs/ensomi-model/issues/new?template=data-provenance.yml">データの出所の issue を開く</a>
       </div>
-      <p class="contact-note">issue は公開されます。個人情報や音声は含めないでください。ビートマップのリンクか ID、または表に載っているとおりのラベルがあれば十分です。issue を開いただけで、公開済みのモデルから何かが取り除かれることはありません。</p>
+      <p class="contact-note">issue は公開されます。個人情報や音声は含めないでください。issue を開いただけで、公開済みのモデルから何かが取り除かれることはありません。</p>
     </section>
   </main>
 
   <footer>
-    <p>ensomi R2、リリース <code>r2-1.0</code> と <code>r2-1.0.1</code>。<a href="https://huggingface.co/sed-i/ensomi-r2">モデル</a> · <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance.md">データの出所の報告書</a> · <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_system.md">R2 レポート</a> · <a href="https://github.com/ensomi-labs">ensomi-labs</a></p>
-    <p>このページは R2 のデータの出所に関する報告書に基づいており、それを超えることは主張しません。</p>
+    <p>ensomi R2、リリース <code>r2-1.0</code> と <code>r2-1.0.1</code>。<a href="https://huggingface.co/sed-i/ensomi-r2">モデル</a> · <a href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_system.md">R2 レポート</a> · <a href="https://github.com/ensomi-labs">ensomi-labs</a></p>
   </footer>
 </div>
 </body>
