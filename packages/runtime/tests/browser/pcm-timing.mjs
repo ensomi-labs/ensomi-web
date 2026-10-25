@@ -1,6 +1,6 @@
 /** Warm WebGPU generation times of Adventure (96 kHz) and Catch the Moment (44.1 kHz) on the built page with the Exact
  * timing option off and on, to read its cost: the second decode at the file's own rate (the times table's
- * `Exact-timing decode`) and the core's rate conversion (its `Prepare PCM`). Run on bings-mac from packages/runtime
+ * `Exact-timing decode`) and the core's rate conversion (its `Prepare PCM`). Run from packages/runtime
  * with the page served at ENSOMI_TEST_URL (default http://127.0.0.1:8087) and nothing else running, or through
  * pcm-timing.sh. Per round, song and setting: reload (warm load), generate, then generate again in the same page.
  * Writes artifacts/browser-test/pcm-timing.json.

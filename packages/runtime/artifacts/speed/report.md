@@ -1,6 +1,6 @@
 # Browser generation speed, 2026-10-11
 
-Chrome on an Apple M5 (bings-mac), Adventure (3:20, 2,271 objects), local model, headless, seconds. Shipped in PR #4.
+Chrome on an Apple M5, Adventure (3:20, 2,271 objects), local model, headless, seconds. Shipped in PR #4.
 
 | Path | Version | Cache | Wall | Spectrogram | BeatThis | Mel | Grid | Rows | R2 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

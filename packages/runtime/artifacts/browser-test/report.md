@@ -1,6 +1,6 @@
 # Ensomi R2 browser tests
 
-## Timing prepared before Generate, 2026-10-13, bings-mac
+## Timing prepared before Generate, 2026-10-13
 
 **The page runs a song's audio stages (`prepare`) as soon as the model and the song are ready, and Generate makes the chart from them with `ChartScheduler` in `'whole-chart'` mode. The charts are the ones `generateChart` makes. Generating again while a result plays now stops the audio at 0 with the button back at Play: setting the audio element's `src` pauses it without a `pause` event (the load algorithm fires `emptied`), so the button had stayed at Pause.**
 
@@ -16,7 +16,7 @@
 
 The receipt from a `Prepared` times only rows, prior, arrangement and export, and its total is theirs; the times table adds Prepare PCM and BeatThis and beat grid from `prepare`'s progress.
 
-## Runtime 0.2.0, 2026-10-12, bings-mac
+## Runtime 0.2.0, 2026-10-12
 
 **The page generates with `@ensomi/runtime` 0.2.0, which arranges a song once. Its page code is unchanged: the receipt fields it reads are all still there. A whole-song generation through the page with Exact timing on gives the native runtime 0.2.0's chart for the same PCM, seed and request on all four release songs: the `.osu` is byte-identical on WebAssembly, and on WebGPU too except for one Catch the Moment beat length 1.1e-13 ms apart. The headless suite passes.**
 
@@ -45,9 +45,9 @@ Both builds write the same generator line, `// ensomi-runtime 0.2.0 seed=1 rando
 - **Downloads and grid.** `validate-downloads.py`: 67 archives, the 28 of this page matrix among them, no failures. `grid-drift.mjs npm` gives segments equal to `grid-drift-preview.json` and `grid-drift-exact-off.json` on every song, since the timing stages did not change.
 - **`checks/ln-gaps.mjs`.** `artifacts/ln-gaps.json` was regenerated. No tail of the 3,479 generated long notes followed by a head in their lane ends at or after that head. Gaps under the head height: 205 at 120 px/s, 22 at 240 and 4 at 480, none at 720 (the default) or 960. The tail cap reaches into the next head 129 times at 120 px/s and 5 at 240 with the tail at its end time, and 69 and 4 when drawn short, none at 480 or faster. The shortest gaps are 26, 27, 27, 29 and 39 ms. With 0.1.0 ("Long-note tails" below) there were 3,139 such long notes, none under the head height at 480 px/s or faster, and a shortest gap of 39 ms; the charts differ where 0.1.0 arranged a song twice.
 
-Other agents' builds ran on the mac during these jobs, so no timings are reported.
+Other agents' builds ran on the same machine during these jobs, so no timings are reported.
 
-## Exact timing option, 2026-10-12, bings-mac
+## Exact timing option, 2026-10-12
 
 **The page has an Exact timing option, off by default, below the star rating and seed. Off, the page decodes and generates as before: the seed-1 charts are those of the deployed page, and the beat grid is up to 1.32 ms from the Python release (Catch the Moment). On, the page decodes the song again at the file's own sample rate and the core converts the rate as the Python release does: the beat grid is within 0.0032 ms of the release on the four songs, and Python's recorded draws reproduce all four release charts. With `@ensomi/runtime` 0.1.1 the option costs about 0.35 s on Catch the Moment (44.1 kHz, 2:01) and 1.3 s on Adventure (96 kHz, 3:19), warm on WebGPU. The suite passes headless.**
 
@@ -64,7 +64,7 @@ Other agents' builds ran on the mac during these jobs, so no timings are reporte
 
 Off gives the segments of `main`'s preview build (`grid-drift-preview.json`) to every digit, and on those of `web/play-fixes` with runtime 0.1.0 (`grid-drift-npm.json`). SaiGetsu's 0.0031 ms comes from WebAudio's MP3 decoder, which clips at 1.0 where Python keeps 1.14 (`web/play-fixes` section), not from the conversion. `diagnostics.mts wasm native` replays Python's recorded draws on the page's exact-timing decoding of the original files: all four songs consume every draw and reproduce every hit object, 6,178 together.
 
-**Cost.** `tests/browser/pcm-timing.sh` (job `20261012-081256-exact-timing`): three rounds in which each song gets, with the option off and then on, a reload (warm cache) and two generations, seed 1, WebGPU, local model, no other job on the mac (1-minute load average 2.5 to 2.7). The second decode runs in the page before the worker starts; `pcm` is the receipt's conversion stage.
+**Cost.** `tests/browser/pcm-timing.sh` (job `20261012-081256-exact-timing`): three rounds in which each song gets, with the option off and then on, a reload (warm cache) and two generations, seed 1, WebGPU, local model, no other job on the machine (1-minute load average 2.5 to 2.7). The second decode runs in the page before the worker starts; `pcm` is the receipt's conversion stage.
 
 | Song | File | off: total, s | on: second decode, s | on: `pcm`, s | on: total, s |
 | --- | --- | --- | --- | --- | --- |
@@ -75,7 +75,7 @@ The option's own cost is the second decode plus `pcm`: 0.35 to 0.36 s on Catch t
 
 **Checks.** Job `20261012-080031-exact-suite`, headless, local model, every step exited 0: `npm ls` (0.1.1), `typecheck`, `typecheck:site`, `build:site` (27 tables in `public/resampler/`), `page-matrix.mjs webgpu local` and, with `ENSOMI_PLAYER=1`, `wasm local` with the option at its default (off at every load, read from the control; 9 generations each, every chart valid with exact `.osz` contents, decoded at 24000 and 22050 Hz, `pcm` 0.000 s and no Timing row; the seed-1 charts equal on both providers and to those the deployed page gave in job `20261012-075204` (`page-matrix.mjs webgpu folder` against https://ensomi.app); the seed-0 pair and the rejected five-second section as before; playback and volume checks passed), `ENSOMI_EXACT=1 page-matrix.mjs webgpu local` (the same 9 generations with the option on: every chart valid with exact `.osz` contents, a third decode at the file's rate, 44100, 48000 or 96000 Hz, `pcm` 0.19 to 0.74 s, the Timing row shown, and the seed drawn for seed 0 gave the same chart again), `grid-drift.mjs exact-off` and `exact-on`, `mobile.mjs` (no horizontal scroll from 360 to 1440 px, smallest contrast 6.7), `links.mjs` (8 links, all reachable), `validate-downloads.py` (63 archives, no failures) and `diagnostics.mts wasm native`. The note's figures went into `public/index.html` after this job; the page is otherwise the one it tested.
 
-## Page fixes and the npm runtime, preview build, 2026-10-12, bings-mac
+## Page fixes and the npm runtime, preview build, 2026-10-12
 
 **Seed 0 draws a random seed, visual speeds are 240 to 960 px/s (720 by default), long-note tails are drawn 10 ms short, and the runtime comes from npm (`@ensomi/runtime` 0.1.0). The page still decodes each song with WebAudio at 24000 and 22050 Hz, so it keeps the Wasm build's beat-grid drift against the Python release: at most 1.32 ms, on Catch the Moment, and 0.04 to 0.11 ms on the other songs. Typecheck, build, the local page matrix on both providers, the player checks, grid drift, mobile, links and the downloads pass headless.**
 
@@ -98,9 +98,9 @@ Segment counts match the Python receipts. Catch the Moment's middle segment star
 
 **npm runtime.** The tarball of `@ensomi/runtime` 0.1.0 on registry.npmjs.org has the lockfile's integrity (`sha512-wKwqTsRC…`), and its `src/` equals `js/src/` at tag `v0.1.0` of ensomi-labs/runtime. `npm run same-as-ts` read package 0.1.0 and found all 13 cases equal to main's TypeScript runtime (chart, `.osu` and receipt; job `20261012-054030-node-checks` on the tree of `6f304b6`, whose checks, lockfile and `site/player.ts` this branch has unchanged; the check runs no page code).
 
-**Checks.** Job `20261012-065552-preview-suite`, headless, local model, every step exited 0: `npm ls` (0.1.0), `typecheck`, `typecheck:site`, `build:site` (no `public/resampler/`), `page-matrix.mjs webgpu local` and, with `ENSOMI_PLAYER=1`, `wasm local` (9 generations each including the seed-0 pair, every chart valid with exact `.osz` contents and decoded at 24000 and 22050 Hz, the same seed-1 charts on both providers, the five-second section rejected; playback at 60 fps on all three rates with zero drift, arrow, click, drag, wheel and overview seeks within 0.001 ms), `grid-drift.mjs preview`, `mobile.mjs` (no horizontal scroll from 360 to 1440 px, smallest contrast 6.7), `links.mjs` (8 links, all 200), `validate-downloads.py` (the 34 `.osz` of these runs and 20 older ones from earlier `hf` and `folder` runs, no failures) and `diagnostics.mts wasm replay`. The rest of the suite (`hf` and `folder` sources, the other diagnostics, fallback, wheel, contrast, load benchmark, tail screenshots) passed on `web/play-fixes` (its three `hf` loads that timed out on the mac's network on a second run), whose page differs from this one only in its decoding, and was not repeated.
+**Checks.** Job `20261012-065552-preview-suite`, headless, local model, every step exited 0: `npm ls` (0.1.0), `typecheck`, `typecheck:site`, `build:site` (no `public/resampler/`), `page-matrix.mjs webgpu local` and, with `ENSOMI_PLAYER=1`, `wasm local` (9 generations each including the seed-0 pair, every chart valid with exact `.osz` contents and decoded at 24000 and 22050 Hz, the same seed-1 charts on both providers, the five-second section rejected; playback at 60 fps on all three rates with zero drift, arrow, click, drag, wheel and overview seeks within 0.001 ms), `grid-drift.mjs preview`, `mobile.mjs` (no horizontal scroll from 360 to 1440 px, smallest contrast 6.7), `links.mjs` (8 links, all 200), `validate-downloads.py` (the 34 `.osz` of these runs and 20 older ones from earlier `hf` and `folder` runs, no failures) and `diagnostics.mts wasm replay`. The rest of the suite (`hf` and `folder` sources, the other diagnostics, fallback, wheel, contrast, load benchmark, tail screenshots) passed on `web/play-fixes` (its three `hf` loads that timed out on the machine's network on a second run), whose page differs from this one only in its decoding, and was not repeated.
 
-## Wasm runtime after the core speed fixes, 2026-10-12, bings-mac
+## Wasm runtime after the core speed fixes, 2026-10-12
 
 **The page now generates with ensomi-runtime `5840ea6` and is faster warm than main's TypeScript build on every song: new ÷ main 0.87 to 0.96 on WebGPU and 0.94 to 0.97 on WebAssembly (median of 5 or 6 back-to-back pairs per song and provider). Charts are identical to main's, `npm run same-as-ts` finds all 13 cases equal, and the browser suite passes. The renderer's peak memory is still 0.2 to 0.5 GiB higher.**
 
@@ -138,11 +138,11 @@ The core's own phases are now faster than main's; arrangement, mostly ONNX Runti
 
 **Suite.** Every step of the suite above ran headless on the new build and exited 0: the page matrix (30 generations, all charts valid, no sampling fallbacks, the five-second section rejected; seed-0 hashes as below for all four songs on both providers and every source), player and wheel fixtures (60 fps, zero drift), `fallback.mjs`, `diagnostics.mts` (networks within 9.3e-5 of the recordings; `wasm control` equal on all 6,178 hit objects with every draw consumed; `wasm replay` stops at the same draws as before), mobile, contrast and link checks, all 50 `.osz` in `validate-downloads.py`, and `load-benchmark.mjs`. Cold loads today were slow for both builds while the CDN fetches were (median 26 s for main and 33 s for the new page on WebGPU in the timing runs), so this report makes no claim about load time.
 
-## Wasm runtime (ensomi-runtime 7130c47), 2026-10-12, bings-mac
+## Wasm runtime (ensomi-runtime 7130c47), 2026-10-12
 
 **The page generates with the Wasm build of ensomi-runtime (`packages/runtime`, vendored from `7130c47`) and its charts are identical to main's TypeScript build on WebGPU and WebAssembly. The browser suite passes. Warm generation is slower: 1.16 to 1.27 times main's on WebGPU and 1.05 to 1.09 times on WebAssembly, and the renderer's peak memory is 0.2 to 0.4 GiB higher. Build flags do not close the gap; it comes from the core.**
 
-Environment: macOS 27, Apple M5 (4 performance and 6 efficiency cores), Chrome 154.0.8037.99 headless (`channel: 'chrome'`), Playwright 1.54.2, ONNX Runtime Web 1.23.2, WebGPU adapter `apple / metal-3` (available headless). Threads as on the site: WebAssembly on 4, next to WebGPU on 2. Local model served by `site/serve.mjs`. Other agents' builds and tests ran on the mac during part of these runs, so timings are compared in back-to-back pairs and the load average is recorded per run (1.0 to 5.3).
+Environment: macOS 27, Apple M5 (4 performance and 6 efficiency cores), Chrome 154.0.8037.99 headless (`channel: 'chrome'`), Playwright 1.54.2, ONNX Runtime Web 1.23.2, WebGPU adapter `apple / metal-3` (available headless). Threads as on the site: WebAssembly on 4, next to WebGPU on 2. Local model served by `site/serve.mjs`. Other agents' builds and tests ran on the same machine during part of these runs, so timings are compared in back-to-back pairs and the load average is recorded per run (1.0 to 5.3).
 
 **Suite.** Every script in `tests/browser/README.md` ran headless on the new build and passed:
 
@@ -208,13 +208,13 @@ None closes the gap, and `wasm-opt -O3` makes it wider, so the vendored build is
 
 ## TypeScript runtime baseline, 2026-10-11
 
-**Ensomi R2 browser test — 2026-10-11, bings-mac.**
+**Ensomi R2 browser test — 2026-10-11.**
 
 The generator works in headed Chrome on this Apple M5. All four songs pass the requested chart and download checks on WebGPU and forced WASM. Browser-decoded audio does **not** preserve Python replay parity; Catch the Moment exceeds a 1 ms grid-difference target. There are also a GPU-failure recovery defect, a mobile text-contrast failure, a broken runtime link, and horizontal scrolling inside the mobile command example. Product source was not changed.
 
 Environment: macOS 27.0 (26A428), Apple M5, 24 GiB RAM, Chrome 154.0.8037.99, Playwright 1.54.2, ONNX Runtime Web 1.23.2. The first local WebGPU baseline used Chrome 154.0.8037.58 before Chrome updated; the subsequent .99 Hugging Face/folder runs reproduced its charts. Adapter: `apple / metal-3`; no software-GPU or WebGPU-enabling flags. Inference runs in the production Web Worker; WASM uses one thread. Mobile results are Chrome device emulation, not real Safari/Android-device tests.
 
-`npm run build:site` and `npm run typecheck:site` passed. The product was served at `http://127.0.0.1:8087/` because 8080 was occupied. The mac has stale Git metadata (`astra-draft-init`), as expected for this synced workspace; no branch operation, commit, push, or deployment was performed. Tested source/bundle identities are in [source-hashes.json](source-hashes.json); [source-verification.json](source-verification.json) confirms the snapshot stayed unchanged. Generated bundles were rebuilt with the requested build command.
+`npm run build:site` and `npm run typecheck:site` passed. The product was served at `http://127.0.0.1:8087/` because 8080 was occupied. No branch operation, commit, push, or deployment was performed. Tested source/bundle identities are in [source-hashes.json](source-hashes.json); [source-verification.json](source-verification.json) confirms the snapshot stayed unchanged. Generated bundles were rebuilt with the requested build command.
 
 **1. WebGPU execution and numerical agreement.**
 
