@@ -12,7 +12,8 @@
     "onnxruntime-web": "1.23.2",
     "playwright": "1.54.2",
     "tsx": "4.20.6",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "wrangler": "4.156.0"
   },
   "scripts": {
     "build:site": "esbuild site/app.ts site/worker.ts --bundle --format=esm --target=es2022 --minify --outdir=public --log-level=warning && cp node_modules/@ensomi/runtime/pkg/ensomi_generate_wasm_bg.wasm public/ensomi-runtime.wasm && rm -rf public/resampler && cp -R node_modules/@ensomi/runtime/resampler public/resampler",
