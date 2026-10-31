@@ -74,7 +74,12 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx wrangler preview delete --name "pr-$PR_NUMBER" --skip-confirmation
+      # A pull request closed before its first Preview finished has none to delete: code 10025.
+      - run: |
+          if ! output="$(npx wrangler preview delete --name "pr-$PR_NUMBER" --skip-confirmation 2>&1)"; then
+            echo "$output"
+            grep -q 'code: 10025' <<< "$output"
+          fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
