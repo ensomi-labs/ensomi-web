@@ -4,5 +4,7 @@
   "compatibility_date": "2026-10-01",
   "build": { "command": "npm run build:site" },
   "assets": { "directory": "./public" },
-  "routes": [{ "pattern": "ensomi.app", "custom_domain": true }]
+  "routes": [{ "pattern": "ensomi.app", "custom_domain": true }],
+  "preview_urls": true,
+  "previews": {}
 }

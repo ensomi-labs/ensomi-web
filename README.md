@@ -4,7 +4,7 @@ Static site for https://ensomi.app: the ensomi R2 page with an in-browser chart 
 
 - `public/`: the page in English (`index.html`), Japanese (`ja/index.html`, served at `/ja/`) and Simplified Chinese (`zh/index.html`, at `/zh/`), with `styles.css` and images; the header links the three and, in its top right corner, the model on Hugging Face and ensomi-labs on GitHub. The build adds `app.js`, `worker.js`, the runtime's `ensomi-runtime.wasm` and its resampler tables (`resampler/`), which are not committed. `data-provenance/index.html`, with `ja/` and `zh/` translations and linked from each home page's R2 section and footer, is a reading page, without scripts, that summarises the data provenance of R2 1.0 and 1.0.1; its counts, dates, policy and statement on mapper and artist style restate ensomi-model's [R2 data provenance report](https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_data_provenance.md), which owns them, and change when it does.
 - `site/`: the page's TypeScript. `app.ts` drives the form, progress, downloads and inspector; `audio.ts` decodes the song at its own sample rate for the Exact timing option, so that the runtime converts the rate as the Python release does; `worker.ts` loads the model in a Web Worker, runs a song's audio stages (BeatThis and the beat grid) there as soon as the model and the song are both ready, and generates from them when Generate is pressed; `player.ts` is the live inspector; `star.ts` computes the generated chart's osu!mania star rating as osu! and ensomi-model's calculator do, which the result shows beside the star requested; `i18n.ts` holds the generator's messages in the three languages and picks them by the page's `lang`; `serve.mjs` serves the page locally. Each language's page carries its own static text: a change to one page's text or structure goes into all three, and `npm run check:pages` fails when a translated page's element ids differ from its English page (`index.html` or `data-provenance/index.html`) or a home page's statement lines are not the same.
-- `package.json`: the site's one dependency, [`@ensomi/runtime`](https://www.npmjs.com/package/@ensomi/runtime) at exactly 0.3.2, the WebAssembly build of ensomi's Rust runtime with its JavaScript API over ONNX Runtime Web, and the build and test tools.
+- `package.json`: the site's one dependency, [`@ensomi/runtime`](https://www.npmjs.com/package/@ensomi/runtime) at exactly 0.3.2, the WebAssembly build of ensomi's Rust runtime with its JavaScript API over ONNX Runtime Web, and the build, test and deploy tools.
 - `packages/runtime/`: the runtime's checks in this site, the browser tests and their report ([README](packages/runtime/README.md)).
 - `docs/brand.md`: name, principles, palette and voice.
 
@@ -36,7 +36,15 @@ Dependabot never updates `@ensomi/runtime`, whose exact pin moves with a runtime
 
 ## Deploy
 
-`wrangler deploy` from the repository root, logged in to the Cloudflare account that holds `ensomi.app`. Wrangler runs `npm run build:site` first (`build.command` in `wrangler.jsonc`).
+`npx wrangler deploy` from the repository root, logged in to the Cloudflare account that holds `ensomi.app`. Wrangler runs `npm run build:site` first (`build.command` in `wrangler.jsonc`).
+
+## Previews
+
+`.github/workflows/preview.yml` deploys each commit of a pull request to a [Worker Preview](https://developers.cloudflare.com/workers/previews/) of `ensomi-app` named `pr-<number>`, and keeps one comment on the pull request with two URLs: the Preview's, which follows the latest commit, and that commit's own. Closing or merging the pull request deletes the Preview and its URLs. Forks and Dependabot get no Actions secrets, so their pull requests have no Preview. `npx wrangler preview --name <name>` makes one by hand and `npx wrangler preview delete --name <name>` removes it.
+
+The URLs are on `workers.dev`, public to anyone who has them, and served with `X-Robots-Tag: noindex`. Each hostname is its own origin, so the generator downloads the model again on each one.
+
+The workflow needs two repository secrets: `CLOUDFLARE_API_TOKEN`, a token with Workers Scripts Edit on the account and nothing else, and `CLOUDFLARE_ACCOUNT_ID`. Same-repository pull requests can read the token, because the build runs their code. `preview_urls` in `wrangler.jsonc` takes effect with `npx wrangler deploy` or `npx wrangler triggers deploy`, which applies the routes and URL settings without publishing code; `wrangler preview` does not apply it.
 
 ## Licences
 

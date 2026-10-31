@@ -1,0 +1,83 @@
+name: Preview
+
+# Gives each commit of a pull request a Cloudflare Worker Preview and keeps the URLs in one comment;
+# closing or merging the pull request deletes the Preview. Actions secrets do not reach forks or
+# Dependabot, so their pull requests are skipped.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+
+jobs:
+  deploy:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # The pull request's own commit, not the merge commit GitHub builds by default.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Wrangler runs build:site first. Its log goes to stdout, so the URLs are read from its output
+      # file, not from --json.
+      - id: preview
+        run: |
+          npx wrangler preview --name "pr-$PR_NUMBER" --tag "${HEAD_SHA::7}" --message "Pull request #$PR_NUMBER"
+          preview_url="$(jq -er 'select(.type == "preview") | .preview_urls[0]' "$WRANGLER_OUTPUT_FILE_PATH")"
+          deployment_url="$(jq -er 'select(.type == "preview") | .deployment_urls[0]' "$WRANGLER_OUTPUT_FILE_PATH")"
+          echo "preview_url=$preview_url" >> "$GITHUB_OUTPUT"
+          echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      - run: |
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --edit-last --create-if-none --body "**Preview of ${HEAD_SHA::7}:** $PREVIEW_URL
+
+          This commit only: $DEPLOYMENT_URL"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PREVIEW_URL: ${{ steps.preview.outputs.preview_url }}
+          DEPLOYMENT_URL: ${{ steps.preview.outputs.deployment_url }}
+
+  cleanup:
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # The base branch, so that no code from the pull request runs here with the token.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx wrangler preview delete --name "pr-$PR_NUMBER" --skip-confirmation
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --edit-last --create-if-none --body "Preview deleted."
+        env:
+          GH_TOKEN: ${{ github.token }}
