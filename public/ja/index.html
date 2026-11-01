@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ensomi（えんそみ）: 聴く音楽から、参加する音楽へ</title>
-<meta name="description" content="ensomi は、聴く音楽を遊べる音楽に変えます。誰でも遊べる最初のリリース R2 を試してみてください。曲を選ぶと、ブラウザの中で osu!mania 4K の譜面ができます。次につくっているものもご覧ください。">
+<meta name="description" content="ensomi は、聴く音楽を遊べる音楽に変えます。R2 を試してみてください。曲を選ぶと、ブラウザの中で osu!mania 4K の譜面ができます。次に目指すのは、オープンな音楽理解モデル N1 と R3 です。">
 <meta name="theme-color" content="#1c1525">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:title" content="ensomi（えんそみ）: 聴く音楽から、参加する音楽へ">
-<meta property="og:description" content="曲を選ぶと、遊べる osu!mania 4K の譜面がブラウザの中でできあがります。誰でも遊べる最初のリリースと、次につくっているもの。">
+<meta property="og:description" content="曲を選ぶと、遊べる osu!mania 4K の譜面がブラウザの中でできあがります。オープンな音楽研究と、その先の N1、R3。">
 <meta property="og:image" content="https://ensomi.app/img/icon.webp">
 <meta property="og:url" content="https://ensomi.app/ja/">
 <link rel="alternate" hreflang="en" href="https://ensomi.app/">
@@ -29,10 +29,11 @@
       <a class="brand" href="/ja/"><img src="/mark.png" width="36" height="36" alt="">ensomi</a>
       <nav class="page-nav" aria-label="セクション">
         <a href="#generate" class="desktop-only">生成</a>
-        <a href="#aim">ビジョン</a>
+        <a href="#aim">ミッション</a>
         <a href="#r2">R2</a>
+        <a href="#n1">N1</a>
         <a href="#r3">R3</a>
-        <a href="#run">自分で動かす</a>
+        <a href="#run">動かす</a>
         <a href="#community">コミュニティ</a>
       </nav>
       <div class="icons">
@@ -48,7 +49,7 @@
     </header>
     <div class="hero">
       <img class="hero-icon" src="/img/icon.webp" width="576" height="576" alt="">
-      <p class="eyebrow">R2 · 誰でも遊べる最初のリリース</p>
+      <p class="eyebrow">オープンな音楽研究 · R2 公開中</p>
       <h1 lang="en"><span class="name">ensomi</span> — Play the music around you.</h1>
       <p class="jp" lang="ja">えんそみ — 聴く音楽から、参加する音楽へ。</p>
       <p class="lede">好きな曲を選ぶと、R2 がこのブラウザの中で譜面を作ります。音楽に合わせて譜面が流れるのを見てから、osu! に取り込んで自分で遊んでみてください。曲がパソコンの外に送られることはありません。</p>
@@ -159,16 +160,17 @@
     </section>
 
     <section id="why">
-      <h2>ensomi をつくる理由</h2>
+      <h2>なぜ ensomi か</h2>
       <div class="prose">
         <p>音楽はたいてい、聴くものです。リズムゲームなら、曲の中に入り込めます。手がビートを追いかけ、聴くことが遊ぶことに変わります。けれど、曲が遊べるようになるのは、誰かが一つひとつ手で譜面を作ってから。身の回りの音楽のほとんどには、譜面がありません。</p>
-        <p>それを変えたいと考えています。ensomi はマッパーが作った譜面から学び、音声から新しい譜面を書きます。好きな音楽も、すでに身の回りに流れている音楽も、遊べるものにするために。</p>
+        <p>それを変えていきます。ensomi はマッパーが作った譜面から学び、音声から新しい譜面を書きます。好きな音楽も、すでに身の回りに流れている音楽も、遊べるものにするために。</p>
+        <p>そして、これは始まりにすぎません。モデルが音楽を本当に理解し、その理解を誰もが土台にできるようになったら、何が可能になるのか。新しい遊び方、新しい創作、音を扱う新しい方法。私たちはそれをオープンに探求しています。これらすべてを可能にしてくれたコミュニティと一緒に。</p>
       </div>
     </section>
 
     <section id="aim">
-      <h2>私たちがつくっているもの</h2>
-      <p class="prose">音楽を聴くこと、遊ぶこと、譜面を作ること。それらをひとつの体験にしたいと考えています。四つの場面で、その意味をお見せします。</p>
+      <h2>私たちのミッション</h2>
+      <p class="prose">音楽の理解とリズムゲームの創作を、プレイヤー、マッパー、開発者のためのオープンなツールに。音楽を聴くこと、遊ぶこと、音楽でつくること。それらがひとつの体験になるまで。私たちが探求している四つのフロンティアです。</p>
       <div class="cols">
         <div>
           <p class="eyebrow">まわりの音楽で遊ぶ</p>
@@ -176,9 +178,9 @@
           <p>近くで曲がすでに流れています。ensomi はその曲を認識して再生位置を見つけ、リアルタイムで生成した譜面を始めます。譜面は音楽を止めることなく、音楽についていきます。</p>
         </div>
         <div>
-          <p class="eyebrow">譜面制作</p>
-          <h3>配置を決めるのはあなた。ensomi は候補を出します。</h3>
-          <p>マッパーが一つのパッセージを選び、配置の候補を求めます。譜面のほかの部分はそのままです。候補を見比べて、残す、やり直す、元に戻す。選択も表現も、マッパーのものです。</p>
+          <p class="eyebrow">オープンな音楽理解</p>
+          <h3>耳が導き、タイミングがついてくる。</h3>
+          <p>マッパーが曲を入れると、ensomi がビートとテンポを提案します。拍子が変わる曲でも、拍の取りにくい曲でも。耳と違うところがあれば、聴こえたとおりに印をつけるだけで、その前後のタイミングが計算し直されます。設計からオープンなので、DAW もゲームも、まだ誰も思いついていないツールも、同じ音楽理解の上につくることができます。</p>
         </div>
         <div>
           <p class="eyebrow">練習</p>
@@ -186,12 +188,12 @@
           <p>プレイヤーが好きな曲と上達したい動きを選ぶと、その動きを軸に譜面ができあがります。</p>
         </div>
         <div>
-          <p class="eyebrow">一緒に遊ぶ</p>
+          <p class="eyebrow">4K マルチプレイの新しいかたち</p>
           <h3>あなたのいいプレイが、相手の譜面に降ってくる。</h3>
           <p>対戦テトリスでラインを消すように、きれいに叩けたパッセージや長いコンボが攻撃になります。ノーツの連打や難しいパターンが、相手がこれから叩く譜面に落ちてきます。協力プレイでは息を合わせ、一人のプレイがもう一人の譜面を形づくります。</p>
         </div>
       </div>
-      <p class="prose" style="margin-top: var(--s4)">まだそこまでは来ていません。どの場面にも、指定した難易度で遊べて、音楽に沿い、曲全体でひとつのキャラクターを保ち、頼んだことに応える譜面が必要です。R2 はその最初の一歩です。待っている間に曲全体の譜面ができ、曲の一部にスタイルを指定することもすでにできます。ただし、音楽とリアルタイムで一緒に流れる譜面、プレイ中に変わる譜面、既存の譜面の一部の作り直しには、まだ対応していません。</p>
+      <p class="prose" style="margin-top: var(--s4)">R2 はその最初の一歩です。待っている間に曲全体の譜面ができ、曲の一部にスタイルを指定することもすでにできます。ここから、音楽とリアルタイムで一緒に流れる譜面、プレイに合わせて変わる譜面、聴こえるものに応える譜面へと進んでいきます。</p>
     </section>
 
     <section id="r2">
@@ -211,28 +213,50 @@
       </div>
     </section>
 
-    <section id="r3">
-      <h2>次は R3</h2>
-      <p class="prose">いま、次のシステム R3 を開発しています。R2 と同じく、タイミング、ヘッド行（ノーツの置かれる位置）、配置（ノーツの並べ方）のすべてを扱います。R2 から学んだことに、次の順で取り組みます。</p>
-      <ol class="aims">
-        <li>
-          <h3>音に乗るノーツ</h3>
-          <p>ノーツは、聴こえる音の上に置かれるべきです。実際の音声により正確に合うヘッド行に取り組んでいます。</p>
-        </li>
-        <li>
-          <h3>音を聴く配置</h3>
-          <p>R2 の配置は音声を聴いていません。音ではなくノーツの位置をもとにノーツを並べるため、それが音楽に沿わないロングノーツとして表れます。R3 では配置モデルに音楽の情報を取り入れ、配置も音を聴くようにします。</p>
-        </li>
-        <li>
-          <h3>見えない補正を減らす</h3>
-          <p>R2 には、書いている途中で譜面を安定させるいくつかの補正ルールがあります。たとえば、与えられたキャラクターへ譜面を引き戻す復元力です。それらが特定の譜面をゆがめていないか、見直しています。</p>
-        </li>
-        <li>
-          <h3>信頼できる難易度</h3>
-          <p>★を指定したら、譜面はそれに合っているべきです。いまは指定より易しく、あるいは難しくなることがあります。難易度のコントロールを改善しており、それを正しくするには、システムの多くを作り直すことになるかもしれません。</p>
-        </li>
-      </ol>
-      <p class="prose muted" style="margin-top: var(--s4)">これらは目標であり、作業は進行中です。R2 と同じく、R3 にできることは、確かめてから初めてお伝えします。</p>
+    <section id="next">
+      <h2>次は N1、R3</h2>
+      <p class="prose">二つのモデル、ひとつの方向。N1 は音楽を理解することを学びます。R3 はその理解を、その曲のために書かれたと感じられる譜面に変えます。</p>
+      <div class="cols tracks">
+        <div id="n1">
+          <p class="eyebrow">N1 · オープンな音楽理解</p>
+          <h3>最初のノーツの前に、すべてのビートを見つける作業がある。</h3>
+          <p>地道で時間のかかる作業なのに、テンポの変化や変拍子、拍の取りにくい曲になると、いまのツールは頼りになりません。N1 は、音楽を本当に聴き取るために開発しているモデルです。まずはタイミングから始めます。</p>
+          <ol class="aims">
+            <li>
+              <h4>テンポマップから始める</h4>
+              <p>曲を入れると、赤線の入った <code>.osu</code> が返ってきます。</p>
+            </li>
+            <li>
+              <h4>耳で直す</h4>
+              <p>聴こえたところに印をつければ、N1 がその前後のタイミングを計算し直します。ほかの部分はそのままです。</p>
+            </li>
+            <li>
+              <h4>その上につくる</h4>
+              <p>コードも含めて MIT ライセンス。DAW やゲーム、ほかのツールでも使えます。</p>
+            </li>
+          </ol>
+        </div>
+        <div id="r3">
+          <p class="eyebrow">R3 · 次の譜面システム</p>
+          <h3>R2 は曲を聴かずに配置を決めている。</h3>
+          <p>そのためロングノーツが音楽から離れ、指定より易しく、あるいは難しい譜面になることがあります。R3 は、R2 が教えてくれた課題を解決する次の譜面システムです。</p>
+          <ol class="aims">
+            <li>
+              <h4>音楽についていくノーツ</h4>
+              <p>N1 のタイミングでノーツを聴こえる音の上に置き、配置も音を聴くことで、ロングノーツが曲に沿います。</p>
+            </li>
+            <li>
+              <h4>信頼できる難易度</h4>
+              <p>★を指定すれば、その★の譜面が返ってきます。</p>
+            </li>
+            <li>
+              <h4>リアルタイム</h4>
+              <p>音楽が流れるそばから譜面を生成し、身の回りの音楽を遊べるものにします。</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+      <p class="prose" style="margin-top: var(--s4)">研究を追いかけ、一緒に形にしていきましょう。<a href="https://github.com/ensomi-labs">GitHub</a> で公開しています。</p>
     </section>
 
     <section id="run">
@@ -253,7 +277,7 @@ uv run --python 3.10 --extra mps python -m ensomi_model.system.make \
 
     <section id="community" aria-labelledby="community-title">
       <h2 id="community-title">コミュニティに参加しよう！</h2>
-      <p>プレイした感想や提案を届けたいですか？ぜひコミュニティに参加してください。</p>
+      <p>譜面を作る人も、遊ぶ人も、音楽を作る人も、コードを書く人も。一緒に探求しましょう。聴こえたこと、つくりたいものを聞かせてください。</p>
       <div class="community-links">
         <a class="icon-link discord" href="https://discord.gg/eTmsMWTxwZ" aria-label="Discord で ensomi コミュニティに参加" title="Discord" target="_blank" rel="noopener noreferrer"></a>
         <span class="qq-community">
@@ -266,7 +290,6 @@ uv run --python 3.10 --extra mps python -m ensomi_model.system.make \
 
   <footer>
     <p>ensomi R2、リリース <code>r2-1.0.1</code>。<a href="https://huggingface.co/sed-i/ensomi-r2">モデル</a> · <a href="https://github.com/ensomi-labs/ensomi-model">コード</a> · <a href="https://github.com/ensomi-labs">ensomi-labs</a> · <a href="/ja/data-provenance/">データの出所</a></p>
-    <p>このページの R2 に関する記述は R2 レポートに基づいており、それを超えることは主張しません。R3 は開発中です。</p>
   </footer>
 </div>
 </body>

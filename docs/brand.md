@@ -50,4 +50,4 @@ All text pairs meet WCAG AA on the ground and surfaces (muted text on the raised
 
 ## Voice
 
-Plain, warm and exact. Say what the reader can do and what the system does today; state limits next to claims, as the R2 report does, and claim nothing beyond it.
+Frontier, exploratory, innovative and open, and still warm and exact. On ensomi.app, lead with the ambition: what we are building and why it is exciting, without defensive wording. Name future work as what we are building, never as what already exists, and keep a limit on the page only where it changes what someone does with the tool, such as the star-rating note and the run instructions. The GitHub profile and the reports carry status, limits and conditions, and what they say about a release follows its report.

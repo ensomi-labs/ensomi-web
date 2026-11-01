@@ -231,7 +231,7 @@ output { color: var(--text); font-variant-numeric: tabular-nums; }
 .times td { text-align: right; }
 .times tr.total > * { color: var(--text); font-weight: 650; border-top: 1px solid var(--line); }
 
-/* R2's steps, the three scenarios, R3's aims */
+/* R2's steps, the four frontiers, the two next models and their aims */
 .steps { list-style: none; padding: 0; margin: var(--s4) 0 0; display: grid; gap: var(--s3); grid-template-columns: repeat(3, 1fr); counter-reset: step; }
 .steps li { counter-increment: step; background: var(--surface); border-radius: var(--radius-soft); padding: var(--s3) var(--s4) var(--s4); }
 .steps li::before { content: counter(step); display: block; font-weight: 700; color: var(--rose); }
@@ -245,8 +245,11 @@ output { color: var(--text); font-variant-numeric: tabular-nums; }
 .aims { list-style: none; padding: 0; margin: var(--s5) 0 0; display: grid; gap: var(--s4) var(--s5); grid-template-columns: 1fr 1fr; max-width: 62rem; counter-reset: aim; }
 .aims li { counter-increment: aim; display: grid; grid-template-columns: 2rem 1fr; gap: var(--s1) var(--s3); align-content: start; }
 .aims li::before { content: counter(aim); grid-row: span 2; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50% 50% 50% 22%; background: color-mix(in srgb, var(--purple) 35%, var(--surface)); border: 2px solid var(--purple); color: var(--text); font-size: var(--step--1); font-weight: 700; }
-.aims h3 { font: 650 var(--step-0)/1.3 var(--font-round); margin: 0.2rem 0 0; }
+.aims h4 { font: 650 var(--step-0)/1.3 var(--font-round); margin: 0.2rem 0 0; }
 .aims p { color: var(--muted); margin: 0; }
+.tracks h3 { font-size: var(--step-1); }
+.tracks > div > p:not(.eyebrow) { color: var(--muted); }
+.tracks .aims { grid-template-columns: 1fr; margin-top: var(--s4); }
 
 /* reading pages (data-provenance/): the home page's header and type, one column of prose, no generator */
 .doc-hero { padding: var(--s5) 0 var(--s4); }
