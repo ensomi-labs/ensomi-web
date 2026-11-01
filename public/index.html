@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ensomi: play the music around you</title>
-<meta name="description" content="ensomi turns music you listen to into music you play. Try R2, our first publicly playable release: choose a song and get an osu!mania 4K chart, made in your browser. Then see what we are building next.">
+<meta name="description" content="ensomi turns music you listen to into music you play. Try R2: choose a song and get an osu!mania 4K chart, made in your browser. Then see where we are going next: N1, open music understanding, and R3.">
 <meta name="theme-color" content="#1c1525">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:title" content="ensomi: play the music around you">
-<meta property="og:description" content="Choose a song and get a playable osu!mania 4K chart, made in your browser. Our first publicly playable release, and what we are building next.">
+<meta property="og:description" content="Choose a song and get a playable osu!mania 4K chart, made in your browser. Open music research, and what comes next: N1 and R3.">
 <meta property="og:image" content="https://ensomi.app/img/icon.webp">
 <meta property="og:url" content="https://ensomi.app/">
 <link rel="alternate" hreflang="en" href="https://ensomi.app/">
@@ -29,8 +29,9 @@
       <a class="brand" href="/"><img src="/mark.png" width="36" height="36" alt="">ensomi</a>
       <nav class="page-nav" aria-label="Sections">
         <a href="#generate" class="desktop-only">Generate</a>
-        <a href="#aim">Vision</a>
+        <a href="#aim">Mission</a>
         <a href="#r2">R2</a>
+        <a href="#n1">N1</a>
         <a href="#r3">R3</a>
         <a href="#run">Run it</a>
         <a href="#community">Community</a>
@@ -48,7 +49,7 @@
     </header>
     <div class="hero">
       <img class="hero-icon" src="/img/icon.webp" width="576" height="576" alt="">
-      <p class="eyebrow">R2 · first publicly playable release</p>
+      <p class="eyebrow">Open music research · R2 is playable now</p>
       <h1><span class="name">ensomi</span> — Play the music around you.</h1>
       <p class="jp" lang="ja">えんそみ — 聴く音楽から、参加する音楽へ。</p>
       <p class="lede">Choose a song you love, and R2 charts it for you here in your browser. Watch the chart run against the music, then take it into osu! and play it yourself. The song never leaves your computer.</p>
@@ -159,16 +160,17 @@
     </section>
 
     <section id="why">
-      <h2>Why we are building ensomi</h2>
+      <h2>Why ensomi</h2>
       <div class="prose">
         <p>Most of the time, music is something we listen to. A rhythm game lets you step inside a song: your hands follow the beat, and listening turns into playing. But a song becomes playable only after someone charts it by hand, note by note, and most of the music in your life never gets a chart.</p>
-        <p>We want to change that. ensomi learns from charts that mappers have made and writes new ones from the audio, so that the music you love, and the music already around you, can become something you play.</p>
+        <p>We are changing that. ensomi learns from charts that mappers have made and writes new ones from the audio, so that the music you love, and the music already around you, can become something you play.</p>
+        <p>And that is only the start. What becomes possible when a model truly understands music, and everyone can build on it? New ways to play, to create, to work with sound. We are exploring that in the open, with the community that made all of this possible.</p>
       </div>
     </section>
 
     <section id="aim">
-      <h2>What we are building</h2>
-      <p class="prose">We want listening to music, playing it and making charts for it to become one activity. Four moments show what we mean.</p>
+      <h2>Our mission</h2>
+      <p class="prose">Turn music understanding and rhythm-game creation into open tools for players, mappers and developers, until listening to music, playing it and creating with it become one activity. These are the four frontiers we are exploring.</p>
       <div class="cols">
         <div>
           <p class="eyebrow">Ambient play</p>
@@ -176,9 +178,9 @@
           <p>A song is already playing nearby. ensomi recognises it, finds where it is, and starts a chart, generated in real time, that follows the music without interrupting it.</p>
         </div>
         <div>
-          <p class="eyebrow">Mapping</p>
-          <h3>You shape the choreography; ensomi offers candidates.</h3>
-          <p>A mapper selects one passage and asks for candidate choreography while the rest of the chart stays in place. They compare, keep, retry or undo. The choices, and the expression, stay with the mapper.</p>
+          <p class="eyebrow">Open music understanding</p>
+          <h3>Your ear leads; the timing follows.</h3>
+          <p>A mapper drops in a song and ensomi proposes its beats and tempo, even where the meter shifts or the pulse is hard to read. Where their ear disagrees, they mark what they hear, and the timing is worked out again around that mark. Open by design, so DAWs, games and tools nobody has imagined yet can build on the same understanding of music.</p>
         </div>
         <div>
           <p class="eyebrow">Training</p>
@@ -191,7 +193,7 @@
           <p>Like clearing lines in versus Tetris, a clean passage or a long combo sends an attack: a burst of notes or a harder pattern, dropped into what your opponent is about to play. In co-op you coordinate instead, and what one of you plays shapes the other's chart.</p>
         </div>
       </div>
-      <p class="prose" style="margin-top: var(--s4)">We are not there yet. Each moment needs charts that are playable at the difficulty you ask for, follow the music, keep one character through a whole song and answer what you ask. R2 is our first step: a whole song, charted while you wait, and you can already ask for a style in one part of it. It does not yet play along in real time, change a chart while someone plays it, or rework one passage of an existing chart.</p>
+      <p class="prose" style="margin-top: var(--s4)">R2 is our first step: a whole song, charted while you wait, and you can already ask for a style in one part of it. From here, we are going after charts that play along in real time, change as you play and respond to what you hear.</p>
     </section>
 
     <section id="r2">
@@ -211,28 +213,58 @@
       </div>
     </section>
 
-    <section id="r3">
-      <h2>Next: R3</h2>
-      <p class="prose">We are now building R3, the next system. Like R2, it spans timing, head rows (where notes fall) and choreography (how they are arranged). It goes after what R2 taught us, in this order.</p>
-      <ol class="aims">
-        <li>
-          <h3>Notes on the music</h3>
-          <p>Notes should land on what you hear. We are working on head rows that sit more precisely on what the audio actually contains.</p>
-        </li>
-        <li>
-          <h3>An arrangement that listens</h3>
-          <p>R2's arrangement does not hear the audio. It lays out notes from where they fall, not from the sound, and it shows in long notes that do not follow the music. For R3 we are bringing music information into the arrangement model, so that the choreography listens too.</p>
-        </li>
-        <li>
-          <h3>Less hidden steering</h3>
-          <p>A few calibration rules hold R2 steady as it writes, such as a restoring force that pulls the chart back toward the character it was given. We are reviewing them, to find where they bend particular charts out of shape.</p>
-        </li>
-        <li>
-          <h3>Difficulty you can trust</h3>
-          <p>When you ask for a star rating, the chart should match it. Today a chart can come out easier or harder than you asked. We are working on better difficulty control, and getting it right may reshape much of the system.</p>
-        </li>
-      </ol>
-      <p class="prose muted" style="margin-top: var(--s4)">These are aims, and the work is in progress. As with R2, we will say what R3 does only once we have checked it.</p>
+    <section id="next">
+      <h2>Next: N1, R3</h2>
+      <p class="prose">Two models, one direction. N1 learns to understand music. R3 turns that understanding into charts that feel written for the song.</p>
+      <div class="cols tracks">
+        <div id="n1">
+          <p class="eyebrow">N1 · open music understanding</p>
+          <h3>A model that hears how music is built.</h3>
+          <p>N1 starts with timing: the beats, tempo changes and offsets every mapper works out before placing a single note. We are building it as open infrastructure for rhythm-game charting and open DAW tools, under the MIT licence, code included.</p>
+          <ol class="aims">
+            <li>
+              <h4>From song to tempo map</h4>
+              <p>Drop in a song and get a tempo map to work from. The first mapper tool is as direct as it sounds: audio in, an <code>.osu</code> with its red lines in place out.</p>
+            </li>
+            <li>
+              <h4>Mark what you hear</h4>
+              <p>Fix one beat, not every line. Mark what you hear and N1 reworks the timing around your mark, leaving the rest alone.</p>
+            </li>
+            <li>
+              <h4>Beyond the beat grid</h4>
+              <p>A grid is only the surface of a song. We are teaching a model to work out how music is put together: the pulse, the attacks, odd meters and the layers a listener moves between.</p>
+            </li>
+            <li>
+              <h4>The hardest music first</h4>
+              <p>Tempo changes, free tempo, beats you can read more than one way. We are aiming N1 at the music that defeats today's tools, and we measure it by the work it saves people.</p>
+            </li>
+          </ol>
+        </div>
+        <div id="r3">
+          <p class="eyebrow">R3 · the next chart system</p>
+          <h3>Charts that listen, all the way through.</h3>
+          <p>Like R2, R3 spans timing, head rows (where notes fall) and choreography (how they are arranged). It will take its timing from N1, generate in real time, and go after what R2 taught us, in this order.</p>
+          <ol class="aims">
+            <li>
+              <h4>Notes on the music</h4>
+              <p>Notes should land on what you hear. We are working on head rows that sit more precisely on what the audio actually contains.</p>
+            </li>
+            <li>
+              <h4>An arrangement that listens</h4>
+              <p>R2 lays out notes from where they fall, not from the sound. For R3 we are bringing music information into the arrangement model, so that long notes follow the music and the choreography listens too.</p>
+            </li>
+            <li>
+              <h4>Less hidden steering</h4>
+              <p>A few calibration rules hold R2 steady as it writes, such as a restoring force that pulls the chart back toward the character it was given. We are finding where they bend charts out of shape, so that the music can lead.</p>
+            </li>
+            <li>
+              <h4>Difficulty you can trust</h4>
+              <p>When you ask for a star rating, the chart should match it. We are working on difficulty control that delivers exactly that, even if it means reshaping much of the system.</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+      <p class="prose" style="margin-top: var(--s4)">Follow the research, and help shape it, on <a href="https://github.com/ensomi-labs">GitHub</a>.</p>
     </section>
 
     <section id="run">
@@ -253,7 +285,7 @@ uv run --python 3.10 --extra mps python -m ensomi_model.system.make \
 
     <section id="community" aria-labelledby="community-title">
       <h2 id="community-title">Join the community!</h2>
-      <p>Want to share feedback or suggestions after playing? We'd love to hear from you.</p>
+      <p>Map, play, make music or write code? Come and explore with us. Tell us what you hear and what you want to build.</p>
       <div class="community-links">
         <a class="icon-link discord" href="https://discord.gg/eTmsMWTxwZ" aria-label="Join the ensomi community on Discord" title="Discord" target="_blank" rel="noopener noreferrer"></a>
         <span class="qq-community">
@@ -266,7 +298,6 @@ uv run --python 3.10 --extra mps python -m ensomi_model.system.make \
 
   <footer>
     <p>ensomi R2, release <code>r2-1.0.1</code>. <a href="https://huggingface.co/sed-i/ensomi-r2">Model</a> · <a href="https://github.com/ensomi-labs/ensomi-model">Code</a> · <a href="https://github.com/ensomi-labs">ensomi-labs</a> · <a href="/data-provenance/">Data provenance</a></p>
-    <p>What this page says about R2 follows the R2 report and claims nothing beyond it. R3 is work in progress.</p>
   </footer>
 </div>
 </body>

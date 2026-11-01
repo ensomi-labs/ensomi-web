@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ensomi：在浏览器里为你喜欢的歌生成 osu!mania 谱面</title>
-<meta name="description" content="ensomi 把你听的音乐变成你能玩的音乐。试试我们首个公开可玩的版本 R2：选一首歌，就能在浏览器里得到一张 osu!mania 4K 谱面。也看看我们接下来在做什么。">
+<meta name="description" content="ensomi 把你听的音乐变成你能玩的音乐。试试 R2：选一首歌，就能在浏览器里得到一张 osu!mania 4K 谱面。再看看我们的下一步：开放音乐理解模型 N1，以及 R3。">
 <meta name="theme-color" content="#1c1525">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:title" content="ensomi：在浏览器里为你喜欢的歌生成 osu!mania 谱面">
-<meta property="og:description" content="选一首歌，就能在浏览器里得到一张能玩的 osu!mania 4K 谱面。我们首个公开可玩的版本，以及接下来在做的东西。">
+<meta property="og:description" content="选一首歌，就能在浏览器里得到一张能玩的 osu!mania 4K 谱面。开放的音乐研究，以及接下来的 N1 和 R3。">
 <meta property="og:image" content="https://ensomi.app/img/icon.webp">
 <meta property="og:url" content="https://ensomi.app/zh/">
 <link rel="alternate" hreflang="en" href="https://ensomi.app/">
@@ -29,8 +29,9 @@
       <a class="brand" href="/zh/"><img src="/mark.png" width="36" height="36" alt="">ensomi</a>
       <nav class="page-nav" aria-label="页面导航">
         <a href="#generate" class="desktop-only">生成</a>
-        <a href="#aim">愿景</a>
+        <a href="#aim">使命</a>
         <a href="#r2">R2</a>
+        <a href="#n1">N1</a>
         <a href="#r3">R3</a>
         <a href="#run">自己运行</a>
         <a href="#community">社群</a>
@@ -48,7 +49,7 @@
     </header>
     <div class="hero">
       <img class="hero-icon" src="/img/icon.webp" width="576" height="576" alt="">
-      <p class="eyebrow">R2 · 首个公开可玩的版本</p>
+      <p class="eyebrow">开放的音乐研究 · R2 现已可玩</p>
       <h1 lang="en"><span class="name">ensomi</span> — Play the music around you.</h1>
       <p class="jp" lang="ja">えんそみ — 聴く音楽から、参加する音楽へ。</p>
       <p class="lede">选一首你喜欢的歌，R2 就在你的浏览器里为它写谱。先看着谱面跟着音乐滚动，再导入 osu! 亲自玩。歌曲不会离开你的电脑。</p>
@@ -159,16 +160,17 @@
     </section>
 
     <section id="why">
-      <h2>我们为什么做 ensomi</h2>
+      <h2>为什么是 ensomi</h2>
       <div class="prose">
         <p>大多数时候，音乐是用来听的。音乐游戏让你走进一首歌：双手跟着节拍，聆听变成了演奏。可一首歌要等有人一个音符一个音符地手工写好谱，才能玩；而你生活中的大多数音乐，永远等不到一张谱面。</p>
-        <p>我们想改变这一点。ensomi 从谱师写的谱面中学习，再根据音频写出新的谱面，让你喜欢的音乐、身边正在播放的音乐，都能变成可以玩的东西。</p>
+        <p>我们正在改变这一点。ensomi 从谱师写的谱面中学习，再根据音频写出新的谱面，让你喜欢的音乐、身边正在播放的音乐，都能变成可以玩的东西。</p>
+        <p>而这只是开始。当模型真正理解音乐，每个人都能在这种理解之上继续创造，会发生什么？新的玩法，新的创作，新的声音工作方式。我们正以开放的方式探索这些问题，和让这一切成为可能的社区一起。</p>
       </div>
     </section>
 
     <section id="aim">
-      <h2>我们在做什么</h2>
-      <p class="prose">我们希望听音乐、玩音乐和为音乐写谱成为同一件事。下面四个场景说明了我们的意思。</p>
+      <h2>我们的使命</h2>
+      <p class="prose">把音乐理解和音乐游戏创作，变成玩家、谱师和开发者都能使用的开放工具，直到听音乐、玩音乐和用音乐创作成为同一件事。以下是我们正在探索的四个前沿。</p>
       <div class="cols">
         <div>
           <p class="eyebrow">随处可玩</p>
@@ -176,9 +178,9 @@
           <p>附近已经在放一首歌。ensomi 识别出它、找到播放位置，然后开始一张实时生成的谱面，跟着音乐走，不打断音乐。</p>
         </div>
         <div>
-          <p class="eyebrow">写谱</p>
-          <h3>配置由你决定，ensomi 提供候选。</h3>
-          <p>谱师选中一段，请 ensomi 给出配置候选，谱面其余部分保持不动。比较、保留、重试或撤销，选择和表达都留在谱师手中。</p>
+          <p class="eyebrow">开放的音乐理解</p>
+          <h3>耳朵带路，时间轴跟上。</h3>
+          <p>谱师放入一首歌，ensomi 就给出它的节拍和速度，哪怕拍号在变、律动难以捉摸。耳朵听到的不一样？标出听到的位置，那附近的时间轴就会重新计算。它从设计上就是开放的，DAW、游戏，以及还没人想到的工具，都能建立在同一份音乐理解之上。</p>
         </div>
         <div>
           <p class="eyebrow">练习</p>
@@ -191,7 +193,7 @@
           <p>就像对战俄罗斯方块里消行一样，打得干净的一段或长连击会发出攻击：一串音符或更难的键型，掉进对手接下来要打的谱面里。合作模式下则要互相配合，一个人的演奏会塑造另一个人的谱面。</p>
         </div>
       </div>
-      <p class="prose" style="margin-top: var(--s4)">我们还没走到那一步。每个场景都需要这样的谱面：在你要求的难度下可以玩、贴合音乐、整首歌保持统一的风格，并回应你的要求。R2 是我们的第一步：稍等片刻就能得到整首歌的谱面，而且已经可以为其中一段指定风格。它还不能实时跟着音乐生成、不能在有人游玩时改变谱面，也不能重写现有谱面的某一段。</p>
+      <p class="prose" style="margin-top: var(--s4)">R2 是我们的第一步：稍等片刻就能得到整首歌的谱面，而且已经可以为其中一段指定风格。接下来，我们要做的是实时跟着音乐走的谱面、随你的演奏而变化的谱面，以及回应你所听到的声音的谱面。</p>
     </section>
 
     <section id="r2">
@@ -211,28 +213,58 @@
       </div>
     </section>
 
-    <section id="r3">
-      <h2>下一步：R3</h2>
-      <p class="prose">我们正在开发下一代系统 R3。和 R2 一样，它涵盖时间轴、音符行（音符落在哪里）和配置（音符如何排列）。它按以下顺序解决 R2 暴露出的问题。</p>
-      <ol class="aims">
-        <li>
-          <h3>音符踩在音乐上</h3>
-          <p>音符应该落在你听到的声音上。我们正在让音符行更精确地对齐音频里实际的内容。</p>
-        </li>
-        <li>
-          <h3>会听音乐的配置</h3>
-          <p>R2 的配置听不到音频。它根据音符的位置而不是声音来排列音符，这体现在不贴合音乐的长条上。在 R3 中，我们把音乐信息引入配置模型，让配置也能“听”。</p>
-        </li>
-        <li>
-          <h3>减少隐藏的调控</h3>
-          <p>R2 在写谱时靠几条校准规则保持稳定，比如一股把谱面拉回既定风格的回复力。我们正在逐一检查，找出它们在哪些谱面上造成了变形。</p>
-        </li>
-        <li>
-          <h3>可信的难度</h3>
-          <p>你要求多少星，谱面就应该是多少星。目前谱面可能比要求的更简单或更难。我们正在改进难度控制，要做好它，可能需要重塑系统的很大一部分。</p>
-        </li>
-      </ol>
-      <p class="prose muted" style="margin-top: var(--s4)">这些是目标，工作仍在进行中。和 R2 一样，只有在确认之后，我们才会说明 R3 能做什么。</p>
+    <section id="next">
+      <h2>下一步：N1、R3</h2>
+      <p class="prose">两个模型，一个方向。N1 学习理解音乐，R3 把这种理解变成仿佛专为这首歌而写的谱面。</p>
+      <div class="cols tracks">
+        <div id="n1">
+          <p class="eyebrow">N1 · 开放的音乐理解</p>
+          <h3>一个能听懂音乐如何构成的模型。</h3>
+          <p>N1 从时间轴开始：节拍、变速和偏移，这些是谱师放下第一个音符之前要弄清楚的东西。我们把它打造成面向音乐游戏写谱和开源 DAW 工具的开放基础设施，采用 MIT 协议，代码一并开放。</p>
+          <ol class="aims">
+            <li>
+              <h4>从歌曲到时间轴</h4>
+              <p>放入一首歌，就能得到一份可以直接上手的时间轴。第一个谱师工具就像听上去那么直接：输入音频，输出红线已经就位的 <code>.osu</code>。</p>
+            </li>
+            <li>
+              <h4>标出你听到的</h4>
+              <p>改一拍就够，不用改每一条线。标出你听到的位置，N1 会重新计算它周围的时间轴，其余部分保持不动。</p>
+            </li>
+            <li>
+              <h4>超越节拍网格</h4>
+              <p>网格只是一首歌的表面。我们正在教模型读懂音乐是怎样搭建起来的：律动、起音、奇数拍，以及听者可以来回切换的层次。</p>
+            </li>
+            <li>
+              <h4>先攻最难的音乐</h4>
+              <p>变速、自由速度、可以有多种读法的节拍。我们让 N1 直面难倒现有工具的音乐，并以它为人省下多少工作来衡量它。</p>
+            </li>
+          </ol>
+        </div>
+        <div id="r3">
+          <p class="eyebrow">R3 · 下一代谱面系统</p>
+          <h3>从头到尾都在听的谱面。</h3>
+          <p>和 R2 一样，R3 涵盖时间轴、音符行（音符落在哪里）和配置（音符如何排列）。它的时间轴将来自 N1，能够实时生成，并按以下顺序解决 R2 教给我们的问题。</p>
+          <ol class="aims">
+            <li>
+              <h4>音符踩在音乐上</h4>
+              <p>音符应该落在你听到的声音上。我们正在让音符行更精确地对齐音频里实际的内容。</p>
+            </li>
+            <li>
+              <h4>会听音乐的配置</h4>
+              <p>R2 根据音符的位置而不是声音来排列音符。在 R3 中，我们把音乐信息引入配置模型，让长条贴合音乐，让配置也能“听”。</p>
+            </li>
+            <li>
+              <h4>减少隐藏的调控</h4>
+              <p>R2 在写谱时靠几条校准规则保持稳定，比如一股把谱面拉回既定风格的回复力。我们正在找出它们让谱面变形的地方，让音乐来主导。</p>
+            </li>
+            <li>
+              <h4>可信的难度</h4>
+              <p>你要求多少星，谱面就应该是多少星。我们正在打造能做到这一点的难度控制，哪怕要重塑系统的很大一部分。</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+      <p class="prose" style="margin-top: var(--s4)">在 <a href="https://github.com/ensomi-labs">GitHub</a> 上关注我们的研究，一起塑造它。</p>
     </section>
 
     <section id="run">
@@ -253,7 +285,7 @@ uv run --python 3.10 --extra mps python -m ensomi_model.system.make \
 
     <section id="community" aria-labelledby="community-title">
       <h2 id="community-title">加入社群吧！</h2>
-      <p>想提供游玩反馈或建议？欢迎加入我们的社群。</p>
+      <p>写谱、玩谱、做音乐还是写代码，都欢迎一起探索。告诉我们你听到了什么，想做出什么。</p>
       <div class="community-links">
         <a class="icon-link discord" href="https://discord.gg/eTmsMWTxwZ" aria-label="加入 ensomi Discord 社群" title="Discord" target="_blank" rel="noopener noreferrer"></a>
         <span class="qq-community">
@@ -266,7 +298,6 @@ uv run --python 3.10 --extra mps python -m ensomi_model.system.make \
 
   <footer>
     <p>ensomi R2，版本 <code>r2-1.0.1</code>。<a href="https://huggingface.co/sed-i/ensomi-r2">模型</a> · <a href="https://github.com/ensomi-labs/ensomi-model">代码</a> · <a href="https://github.com/ensomi-labs">ensomi-labs</a> · <a href="/zh/data-provenance/">数据来源</a></p>
-    <p>本页关于 R2 的内容以 R2 报告为准，不作超出报告的声明。R3 仍在开发中。</p>
   </footer>
 </div>
 </body>
