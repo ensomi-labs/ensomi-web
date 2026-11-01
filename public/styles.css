@@ -100,9 +100,10 @@ button.icon-link { border: 0; padding: 0; background: none; cursor: pointer; }
 .icon-link.lang:has(+ :popover-open) { color: var(--text); background: var(--surface); }
 /* The language menu is a popover, so the reading pages need no script for it: Esc or a click elsewhere closes it,
    and the top layer escapes .hero-band's overflow. Absolute there is against the page, so the insets put it under
-   the button by the header's own measures: its padding and the button's height, and the right edge of .wrap. */
+   the button by the header's own measures: its padding and the button's height, and the right edge of .wrap.
+   Flex, not grid: WebKit stretches a grid popover to the viewport's height. */
 .top .langs { position: absolute; inset: calc(var(--s3) + 2.25rem + var(--s1)) max(var(--s4), calc(50% - var(--wide) / 2 + var(--s4))) auto auto; margin: 0; padding: var(--s1); min-width: 8rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius) 10px var(--radius) var(--radius); font-size: var(--step--1); }
-.top .langs:popover-open { display: grid; }
+.top .langs:popover-open { display: flex; flex-direction: column; }
 .top .langs a { padding: var(--s2) var(--s3); border-radius: 14px; color: var(--muted); text-decoration: none; }
 .top .langs a:hover { color: var(--text); background: var(--surface); }
 .top .langs a:focus-visible { outline-offset: -3px; }
