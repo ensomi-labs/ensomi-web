@@ -82,22 +82,31 @@ code { background: var(--surface-2); padding: 0.1em 0.4em; border-radius: 6px; }
 .skip { position: absolute; left: -999px; }
 .skip:focus { left: var(--s3); top: var(--s3); background: var(--bg); padding: var(--s2) var(--s3); z-index: 10; }
 
-/* header: the brand, the sections, then the languages and the two repositories in the top right corner */
+/* header: the brand, the sections, then the two repositories and the language menu in the top right corner */
 .top { display: flex; align-items: center; gap: var(--s2) var(--s4); padding: var(--s3) 0; }
 .brand { display: flex; align-items: center; gap: var(--s2); color: var(--text); text-decoration: none; font: 650 var(--step-1)/1 var(--font-round); letter-spacing: 0.01em; }
 .brand img { width: 36px; height: 36px; border-radius: 10px; }
-.top nav { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); font-size: var(--step--1); }
-.top nav a { color: var(--muted); text-decoration: none; padding: var(--s1) 0; }
-.top nav a:hover { color: var(--text); text-decoration: underline; }
-.top .page-nav { margin-left: auto; }
-.top .langs { gap: var(--s1) var(--s3); padding-left: var(--s4); border-left: 1px solid var(--line); }
-.top .langs a[aria-current="page"] { color: var(--text); font-weight: 650; }
+.top .page-nav { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); margin-left: auto; font-size: var(--step--1); }
+.top .page-nav a { color: var(--muted); text-decoration: none; padding: var(--s1) 0; }
+.top .page-nav a:hover { color: var(--text); text-decoration: underline; }
 .top .icons { display: flex; gap: var(--s1); }
 .icon-link { display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; color: var(--muted); }
+button.icon-link { border: 0; padding: 0; background: none; cursor: pointer; }
 .icon-link:hover { color: var(--text); background: var(--surface); }
 .icon-link::before { content: ""; width: 1.3rem; height: 1.3rem; background: currentColor; mask: var(--icon) center / contain no-repeat; }
 .icon-link.hf { --icon: url(/img/huggingface.svg); }
 .icon-link.gh { --icon: url(/img/github.svg); }
+.icon-link.lang { --icon: url(/img/language.svg); }
+.icon-link.lang:has(+ :popover-open) { color: var(--text); background: var(--surface); }
+/* The language menu is a popover, so the reading pages need no script for it: Esc or a click elsewhere closes it,
+   and the top layer escapes .hero-band's overflow. Absolute there is against the page, so the insets put it under
+   the button by the header's own measures: its padding and the button's height, and the right edge of .wrap. */
+.top .langs { position: absolute; inset: calc(var(--s3) + 2.25rem + var(--s1)) max(var(--s4), calc(50% - var(--wide) / 2 + var(--s4))) auto auto; margin: 0; padding: var(--s1); min-width: 8rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius) 10px var(--radius) var(--radius); font-size: var(--step--1); }
+.top .langs:popover-open { display: grid; }
+.top .langs a { padding: var(--s2) var(--s3); border-radius: 14px; color: var(--muted); text-decoration: none; }
+.top .langs a:hover { color: var(--text); background: var(--surface); }
+.top .langs a:focus-visible { outline-offset: -3px; }
+.top .langs a[aria-current="page"] { color: var(--text); font-weight: 650; }
 
 /* hero: the diagonal split of the mark, the icon, the statement */
 .hero-band { background: linear-gradient(152deg, var(--bg) 0 58%, var(--bg-2) 58% 100%); overflow: hidden; }
@@ -270,11 +279,11 @@ footer p { margin-bottom: var(--s2); }
   .desktop-note { display: block; margin-top: var(--s4); background: var(--surface); border-radius: var(--radius-soft); padding: var(--s3) var(--s4); color: var(--muted); }
   .wrap { padding: 0 var(--s3); }
   .top { flex-wrap: wrap; }
-  /* the brand and the two icons share the first row; the sections and the languages follow */
+  /* the brand and the icons share the first row; the sections follow */
   .top .icons { order: 1; margin-left: auto; }
-  .top .page-nav { order: 2; margin-left: 0; }
+  .top .page-nav { order: 2; flex-basis: 100%; margin-left: 0; }
   .top .page-nav { column-gap: var(--s3); }
-  .top .langs { order: 3; margin-left: auto; padding-left: 0; border-left: 0; }
+  .top .langs { right: var(--s3); }
   .hero h1 { font-size: clamp(2.1rem, 1.2rem + 4.5vw, 3.4rem); }
   .hero-icon { display: none; }
   section { padding-top: var(--s5); }

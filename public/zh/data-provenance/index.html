@@ -34,14 +34,15 @@
         <a href="#tables">表格</a>
         <a href="#contact">联系</a>
       </nav>
-      <nav class="langs" aria-label="语言">
-        <a href="/data-provenance/" hreflang="en" lang="en">English</a>
-        <a href="/ja/data-provenance/" hreflang="ja" lang="ja">日本語</a>
-        <a href="/zh/data-provenance/" hreflang="zh-CN" lang="zh-CN" aria-current="page">中文</a>
-      </nav>
       <div class="icons">
         <a class="icon-link hf" href="https://huggingface.co/sed-i/ensomi-r2" aria-label="Hugging Face 上的模型" title="Hugging Face"></a>
         <a class="icon-link gh" href="https://github.com/ensomi-labs" aria-label="GitHub 上的 ensomi-labs" title="GitHub"></a>
+        <button class="icon-link lang" type="button" popovertarget="lang-menu" aria-label="语言" title="语言"></button>
+        <nav class="langs" id="lang-menu" aria-label="语言" popover>
+          <a href="/data-provenance/" hreflang="en" lang="en">English</a>
+          <a href="/ja/data-provenance/" hreflang="ja" lang="ja">日本語</a>
+          <a href="/zh/data-provenance/" hreflang="zh-CN" lang="zh-CN" aria-current="page">中文</a>
+        </nav>
       </div>
     </header>
     <div class="doc-hero">
