@@ -285,6 +285,7 @@ footer p { margin-bottom: var(--s2); }
   .top .page-nav { order: 2; flex-basis: 100%; margin-left: 0; }
   .top .page-nav { column-gap: var(--s3); }
   .top .langs { right: var(--s3); }
+  .hero, .doc-hero { padding-top: var(--s3); }
   .hero h1 { font-size: clamp(2.1rem, 1.2rem + 4.5vw, 3.4rem); }
   .hero-icon { display: none; }
   section { padding-top: var(--s5); }
