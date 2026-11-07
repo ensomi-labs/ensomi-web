@@ -42,7 +42,7 @@ Dependabot never updates `@ensomi/runtime`, whose exact pin moves with a runtime
 
 `.github/workflows/preview.yml` deploys each commit of a pull request to a [Worker Preview](https://developers.cloudflare.com/workers/previews/) of `ensomi-app` named `pr-<number>`, and keeps one comment on the pull request with two URLs: the Preview's, which follows the latest commit, and that commit's own. Closing or merging the pull request deletes the Preview and its URLs. Forks and Dependabot get no Actions secrets, so their pull requests have no Preview. `npx wrangler preview --name <name>` makes one by hand and `npx wrangler preview delete --name <name>` removes it.
 
-The URLs are on `workers.dev`, public to anyone who has them, and served with `X-Robots-Tag: noindex`. Each hostname is its own origin, so the generator downloads the model again on each one.
+The URLs are on `workers.dev`, public to anyone who has them, and served with `X-Robots-Tag: noindex`. Each hostname is its own origin, so the generator downloads the model again on each one. Hugging Face's CDN answers a request whose Referer is on `workers.dev` with a 404 without CORS headers, so `site/worker.ts` fetches the model files without a Referer.
 
 The workflow needs two repository secrets: `CLOUDFLARE_API_TOKEN`, a token with Workers Scripts Edit on the account and nothing else, and `CLOUDFLARE_ACCOUNT_ID`. Same-repository pull requests can read the token, because the build runs their code. `preview_urls` in `wrangler.jsonc` takes effect with `npx wrangler deploy` or `npx wrangler triggers deploy`, which applies the routes and URL settings without publishing code; `wrangler preview` does not apply it.
 
