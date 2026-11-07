@@ -34,7 +34,8 @@ function cachedSource(base: string): FileSource {
             post({ type: 'file', path, loaded: bytes.length, size: bytes.length, cached: true });
             return bytes;
         }
-        const response = await fetch(url);
+        // Hugging Face's CDN answers a Referer on workers.dev, where the Previews are, with a 404 without CORS headers.
+        const response = await fetch(url, { referrerPolicy: 'no-referrer' });
         // A missing file rejects with code 'ENOENT', as the runtime's own sources do: a model without
         // ensomi-package.json then loads from its runtime.json.
         if (response.status === 404)
