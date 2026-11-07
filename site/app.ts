@@ -146,6 +146,8 @@ field('song').addEventListener('change', async () => {
     clearError();
     song = undefined;
     prep = undefined;
+    // The stage holds the chosen song's charts.
+    clearStage();
     update();
     $('song-status').textContent = t.decoding(file.name);
     try {
@@ -303,7 +305,7 @@ function update() {
             : song.durationMs < 3000 ? t.songTooShort
                 : seedValue() === undefined ? t.badSeed
                     : sectionError ? t.fixSections : '';
-    $<HTMLButtonElement>('generate-button').disabled = generating || Boolean(blocker);
+    $<HTMLButtonElement>('generate-button').disabled = $<HTMLButtonElement>('regenerate').disabled = generating || Boolean(blocker);
     $<HTMLButtonElement>('add-section').disabled = generating || !caps || !song || !sectionOptions().length;
     $<HTMLButtonElement>('load').disabled = loading || generating;
     // A generation starts from the stages prepared when it was asked for; another song or setting waits until it is done.
@@ -311,8 +313,8 @@ function update() {
     if (!generating) $('run-status').textContent = blocker || (preparing() ? t.timing : prep?.seconds ? t.timingReady : t.readyToGenerate);
 }
 
-// Generate
-$('generate-button').addEventListener('click', async () => {
+// Generate, from the conditions or from the result's Regenerate button, which does the same without scrolling back up.
+async function generate() {
     if (!song || !caps) return;
     const requests = sectionRequests(), entered = seedValue();
     if (typeof requests === 'string' || entered === undefined) return;
@@ -338,7 +340,9 @@ $('generate-button').addEventListener('click', async () => {
         return update();
     }
     worker!.postMessage({ type: 'generate', request, audio: { name: song.file.name, bytes: new Uint8Array(song.buffer) } });
-});
+}
+$('generate-button').addEventListener('click', generate);
+$('regenerate').addEventListener('click', generate);
 
 /** Progress of the audio stages: Prepare, then Timing. */
 function markPhase(data: { id: number; phase: number }) {
@@ -436,10 +440,11 @@ function showResult(result: GenerationResult) {
 }
 
 // Downloads. The runtime's own .osz (result.osz) names every chart generated.osu; the page's are named by their content
-// (site/osz.ts). Stage puts the shown chart in its song's .osz, which then holds the song's staged charts instead of the
-// shown one alone; pressed again, it takes the chart out. Staged charts are kept per song, by its audio file's name.
-let shown: { chart: Chart; audio: Uint8Array } | undefined, oszUrl = '', chartCount = 0, oszCount = 0;
-const staged = new Map<string, Map<string, Chart>>();
+// (site/osz.ts). Stage puts the shown chart in the .osz, which then holds the staged charts instead of the shown one
+// alone; pressed again, it takes the chart out. The stage holds charts of the chosen song only, in page memory: choosing
+// a song empties it, and so does downloading it. A result of a song chosen before can be downloaded but not staged.
+let shown: { chart: Chart; song: Song; audio: Uint8Array } | undefined, oszUrl = '', chartCount = 0, oszCount = 0;
+const staged = new Map<string, Chart>();
 
 /** Names the result's chart, which Stage and the .osz link then offer. */
 async function showChart(result: GenerationResult, done: Job) {
@@ -449,32 +454,43 @@ async function showChart(result: GenerationResult, done: Job) {
     done.song.audioId ??= shortHash(audio);
     const chart = await chartFile(result.osu, result.receipt.receipt_json, await done.song.audioId, done);
     if (id !== chartCount) return;
-    shown = { chart, audio };
+    shown = { chart, song: done.song, audio };
     await refreshDownloads();
 }
 
-/** Labels Stage and the .osz link for the shown chart and points the link at its song's staged charts, or at the chart
- * alone when none is staged. Without a chart, both wait. */
+/** Labels Stage and the .osz link and points the link at the staged charts, or at the shown chart alone when none is
+ * staged. Without a chart, both wait. */
 async function refreshDownloads() {
-    const id = ++oszCount, link = $<HTMLAnchorElement>('get-osz'), stage = shown && staged.get(shown.chart.audioName);
+    const id = ++oszCount, link = $<HTMLAnchorElement>('get-osz');
     link.removeAttribute('href');
-    link.textContent = stage?.size ? t.downloadBundle(stage.size) : t.downloadOsz;
-    $<HTMLButtonElement>('stage').disabled = !shown;
-    $('stage').setAttribute('aria-pressed', String(Boolean(shown && stage?.has(shown.chart.id))));
+    link.textContent = staged.size ? t.downloadBundle(staged.size) : t.downloadOsz;
+    $<HTMLButtonElement>('stage').disabled = !shown || shown.song !== song;
+    $('stage').setAttribute('aria-pressed', String(Boolean(shown && staged.has(shown.chart.id))));
     if (!shown) return;
-    const { name, osz } = await bundle(stage?.size ? [...stage.values()] : [shown.chart], shown.audio);
+    const { name, osz } = await bundle(staged.size ? [...staged.values()] : [shown.chart], shown.audio);
     if (id !== oszCount) return;
-    URL.revokeObjectURL(oszUrl);
+    // A download that has just started may still be reading the previous archive.
+    const previous = oszUrl;
+    if (previous) setTimeout(() => URL.revokeObjectURL(previous), 60_000);
     oszUrl = URL.createObjectURL(new Blob([osz as BlobPart], { type: 'application/zip' }));
     Object.assign(link, { href: oszUrl, download: `${name}.osz` });
 }
 
-$('stage').addEventListener('click', () => {
-    if (!shown) return;
-    const { chart } = shown, stage = staged.get(chart.audioName) ?? new Map<string, Chart>();
-    if (!stage.delete(chart.id)) stage.set(chart.id, chart);
-    staged.set(chart.audioName, stage);
+/** Empties the stage and relabels the downloads. */
+function clearStage() {
+    staged.clear();
     void refreshDownloads();
+}
+
+$('stage').addEventListener('click', () => {
+    if (!shown || shown.song !== song) return;
+    if (!staged.delete(shown.chart.id)) staged.set(shown.chart.id, shown.chart);
+    void refreshDownloads();
+});
+// Downloading the staged charts empties the stage, after the browser has followed the link: emptying it in this
+// handler would take the link's target away first.
+$('get-osz').addEventListener('click', () => {
+    if (staged.size && $('get-osz').hasAttribute('href')) setTimeout(clearStage);
 });
 
 // Inspector controls
