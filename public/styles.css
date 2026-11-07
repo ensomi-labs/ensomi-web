@@ -219,6 +219,7 @@ output { color: var(--text); font-variant-numeric: tabular-nums; }
 .volume input { width: 8rem; margin: 0; }
 .volume output { min-width: 2.75rem; padding: 0.35rem 0; line-height: 1.2; text-align: right; }
 .downloads { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.downloads .btn[aria-pressed="true"] { background: var(--lavender); color: var(--action-ink); }
 .receipt { display: grid; grid-template-columns: max-content 1fr; gap: var(--s1) var(--s4); margin: 0; background: var(--surface); border-radius: var(--radius-soft); padding: var(--s3) var(--s4); font-size: var(--step--1); }
 .receipt dt { color: var(--muted); }
 .receipt dd { margin: 0; font-variant-numeric: tabular-nums; }

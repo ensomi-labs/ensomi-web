@@ -11,8 +11,9 @@ for path in sorted((root / 'bulk').glob('*.osz')):
     chart = json.loads(chart_path.read_text())
     with ZipFile(path) as archive:
         bad_crc = archive.testzip()
-        text = archive.read(next(n for n in archive.namelist() if n.endswith('.osu'))).decode()
-        receipt = json.loads(archive.read('receipt.json'))
+        names = archive.namelist()
+        text = archive.read(next(n for n in names if n.endswith('.osu'))).decode()
+        receipt = json.loads(archive.read(next(n for n in names if n.startswith('receipt') and n.endswith('.json'))))
         objects = []
         for line in text.split('[HitObjects]\n')[1].strip().splitlines():
             fields = line.split(',')
@@ -22,7 +23,6 @@ for path in sorted((root / 'bulk').glob('*.osz')):
             objects.append(obj)
         row = dict(file=str(path.relative_to(root)), crc_ok=bad_crc is None,
                    chart_equal=objects == chart['objects'],
-                   direct_osu_equal=text == path.with_suffix('.osu').read_text(),
                    mania_mode='Mode:3' in text, four_keys='CircleSize:4' in text,
                    finalized=receipt['export']['replay_finalized'], objects=len(objects))
         results.append(row)

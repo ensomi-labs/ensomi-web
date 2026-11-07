@@ -1,7 +1,7 @@
 import { ControlStatus, GenerationPhase, PatternKind, decodeAudio, type GenerateChartRequest, type GenerationResult, type ModelCapabilities, type SectionRequest } from '@ensomi/runtime';
 import { decodeSong } from './audio.js';
 import { maniaStar } from './star.js';
-import { chartDownloads } from './osz.js';
+import { bundle, chartFile, shortHash, type Chart } from './osz.js';
 import { Player, RATES, VISUAL_SPEEDS } from './player.js';
 import { t } from './i18n.js';
 
@@ -18,7 +18,8 @@ const RECEIPT_TIMES = ['rows', 'prior', 'arrangement', 'export'];
 // The stages that read the conditions; they run together when Generate is pressed, without progress of their own.
 const CHART_PHASES = [GenerationPhase.ROWS, GenerationPhase.ARRANGEMENT, GenerationPhase.EXPORT];
 
-interface Song { file: File; buffer: ArrayBuffer; mel: Float32Array; beatthis: Float32Array; durationMs: number; decodeSeconds: number }
+/** `audioId`, the ID of the song's bytes in its `.osz` (site/osz.ts), is taken once, for its first result. */
+interface Song { file: File; buffer: ArrayBuffer; mel: Float32Array; beatthis: Float32Array; durationMs: number; decodeSeconds: number; audioId?: Promise<string> }
 interface SectionDraft { start: string; end: string; kind: string; strength: number; star: number }
 /** A song's audio stages, run in the worker as soon as the model and the song are ready. `posted` settles once the worker
  * has the request, `seconds` arrive when the stages are done. */
@@ -389,12 +390,9 @@ function showResult(result: GenerationResult) {
     phase.seconds[GenerationPhase.EXPORT] = detail.seconds.export;
     finishRun();
     for (const url of urls) URL.revokeObjectURL(url);
-    // The runtime's own .osz (result.osz) names every chart generated.osu; each result's downloads are its own (site/osz.ts).
-    const files = chartDownloads(result.osu, result.receipt.receipt_json, new Uint8Array(done.song.buffer), done);
-    const osz = URL.createObjectURL(new Blob([files.osz as BlobPart], { type: 'application/zip' })), osu = URL.createObjectURL(new Blob([files.osu], { type: 'text/plain' })), audio = URL.createObjectURL(done.song.file);
-    urls = [osz, osu, audio];
-    Object.assign($<HTMLAnchorElement>('get-osz'), { href: osz, download: `${files.name}.osz` });
-    Object.assign($<HTMLAnchorElement>('get-osu'), { href: osu, download: `${files.name}.osu` });
+    const audio = URL.createObjectURL(done.song.file);
+    urls = [audio];
+    showChart(result, done).catch(error => showError(t.generationFailed(error instanceof Error ? error.message : String(error))));
 
     const facts: [string, string][] = [
         [t.receipt.model, `${result.receipt.model_name} ${result.receipt.model_version}`],
@@ -436,6 +434,48 @@ function showResult(result: GenerationResult) {
     update();
     $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+// Downloads. The runtime's own .osz (result.osz) names every chart generated.osu; the page's are named by their content
+// (site/osz.ts). Stage puts the shown chart in its song's .osz, which then holds the song's staged charts instead of the
+// shown one alone; pressed again, it takes the chart out. Staged charts are kept per song, by its audio file's name.
+let shown: { chart: Chart; audio: Uint8Array } | undefined, oszUrl = '', chartCount = 0, oszCount = 0;
+const staged = new Map<string, Map<string, Chart>>();
+
+/** Names the result's chart, which Stage and the .osz link then offer. */
+async function showChart(result: GenerationResult, done: Job) {
+    const id = ++chartCount, audio = new Uint8Array(done.song.buffer);
+    shown = undefined;
+    void refreshDownloads();
+    done.song.audioId ??= shortHash(audio);
+    const chart = await chartFile(result.osu, result.receipt.receipt_json, await done.song.audioId, done);
+    if (id !== chartCount) return;
+    shown = { chart, audio };
+    await refreshDownloads();
+}
+
+/** Labels Stage and the .osz link for the shown chart and points the link at its song's staged charts, or at the chart
+ * alone when none is staged. Without a chart, both wait. */
+async function refreshDownloads() {
+    const id = ++oszCount, link = $<HTMLAnchorElement>('get-osz'), stage = shown && staged.get(shown.chart.audioName);
+    link.removeAttribute('href');
+    link.textContent = stage?.size ? t.downloadBundle(stage.size) : t.downloadOsz;
+    $<HTMLButtonElement>('stage').disabled = !shown;
+    $('stage').setAttribute('aria-pressed', String(Boolean(shown && stage?.has(shown.chart.id))));
+    if (!shown) return;
+    const { name, osz } = await bundle(stage?.size ? [...stage.values()] : [shown.chart], shown.audio);
+    if (id !== oszCount) return;
+    URL.revokeObjectURL(oszUrl);
+    oszUrl = URL.createObjectURL(new Blob([osz as BlobPart], { type: 'application/zip' }));
+    Object.assign(link, { href: oszUrl, download: `${name}.osz` });
+}
+
+$('stage').addEventListener('click', () => {
+    if (!shown) return;
+    const { chart } = shown, stage = staged.get(chart.audioName) ?? new Map<string, Chart>();
+    if (!stage.delete(chart.id)) stage.set(chart.id, chart);
+    staged.set(chart.audioName, stage);
+    void refreshDownloads();
+});
 
 // Inspector controls
 $('play').addEventListener('click', () => player.toggle());

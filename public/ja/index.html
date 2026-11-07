@@ -147,8 +147,9 @@
           <p class="small muted">スペースキーで再生・一時停止、← → で 5 秒移動します。レーン上ではクリックで移動、ドラッグで少しずつ移動、ホイールか ↑ ↓ でスクロールできます。ローズ色が通常ノーツ、ラベンダー色がロングノーツ、紫の帯が指定した区間です。</p>
           <div class="downloads">
             <a class="btn primary" id="get-osz" download>.osz をダウンロード</a>
-            <a class="btn" id="get-osu" download>.osu をダウンロード</a>
+            <button class="btn" id="stage" type="button" aria-pressed="false" aria-describedby="stage-note" disabled>.osu をステージ</button>
           </div>
+          <p class="small muted" id="stage-note">「.osu をステージ」でこの譜面を曲の .osz に入れます。もう一度押すと外れます。同じ曲の欲しい譜面をステージしてから一度ダウンロードすると、osu! は一つのビートマップセットとして取り込みます。</p>
           <dl class="receipt" id="receipt"></dl>
           <details class="timing">
             <summary id="times-total">生成時間</summary>
