@@ -49,6 +49,8 @@ const en = {
     generatedIn: (seconds: string) => `Generated in ${seconds} s`,
     doneIn: (seconds: string) => `Done in ${seconds} s.`,
     play: 'Play', pause: 'Pause',
+    downloadOsz: 'Download .osz',
+    downloadBundle: (n: number) => `Download .osz (${n} bundled)`,
 };
 
 const ja: typeof en = {
@@ -100,6 +102,8 @@ const ja: typeof en = {
     generatedIn: seconds => `${seconds} 秒で生成`,
     doneIn: seconds => `${seconds} 秒で完了しました。`,
     play: '再生', pause: '一時停止',
+    downloadOsz: '.osz をダウンロード',
+    downloadBundle: n => `.osz をダウンロード（${n} 譜面）`,
 };
 
 const zh: typeof en = {
@@ -151,6 +155,8 @@ const zh: typeof en = {
     generatedIn: seconds => `生成用时 ${seconds} 秒`,
     doneIn: seconds => `完成，用时 ${seconds} 秒。`,
     play: '播放', pause: '暂停',
+    downloadOsz: '下载 .osz',
+    downloadBundle: n => `下载 .osz（含 ${n} 张谱面）`,
 };
 
 const lang = document.documentElement.lang;
