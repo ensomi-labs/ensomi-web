@@ -1,40 +1,41 @@
 import { strToU8, zipSync } from 'fflate';
 
-/** The runtime's generated.osu is reproducible; only the website's downloadable copy is made import-distinct.
- * osu! may merge difficulties with the same metadata, and two maps merged into one set must not share audio.mp3. */
-export function importDistinctExport(
-    sourceOsu: string,
-    receiptJson: string,
-    audio: Uint8Array,
-    title: string,
-    seed: number | bigint,
-    exportId: string,
-) {
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(exportId))
-        throw new Error('Export ID must be a UUID');
-
-    const version = /^Version:([^\r\n]+)$/m.exec(sourceOsu), audioLine = /^AudioFilename:([^\r\n]+)$/m.exec(sourceOsu);
-    if (!version || !audioLine)
+/** The downloads of one result: its `.osz`, its `.osu` and the name both download as.
+ *
+ * The runtime's `.osu` is reproducible, the same for the same song, seed and conditions, and its `.osz` names every chart
+ * `generated.osu` beside `audio.<ext>`. osu!lazer identifies an imported set by its `.osu` files alone and deletes an
+ * earlier set with the same `.osu` but other files, such as a receipt with other timings; osu! may also put two archives
+ * into one folder or set. So every export gets an ID of its own, in the `.osu` (the audio file's name and the
+ * difficulty name), in the archive's chart and audio file names and in the download name. The `.osu` download is the
+ * archive's. */
+export function chartDownloads(sourceOsu: string, receiptJson: string, audio: Uint8Array, chart: { title: string; artist: string; seed: number | bigint }, id = exportId()) {
+    if (!/^[0-9a-f]{8}$/.test(id))
+        throw new Error('Export ID must be eight lowercase hexadecimal digits');
+    const version = /^Version:(.*)$/m.exec(sourceOsu)?.[1], extension = /^AudioFilename:.*\.([a-z0-9]+)$/im.exec(sourceOsu)?.[1].toLowerCase();
+    if (version === undefined || !extension)
         throw new Error('Generated .osu is missing Version or AudioFilename');
 
-    const originalAudio = audioLine[1].trim(), extension = /\.([a-z0-9]+)$/i.exec(originalAudio)?.[1].toLowerCase();
-    if (!extension || /[\\/\u0000-\u001f]/.test(originalAudio))
-        throw new Error('Generated .osu has an unsafe audio filename');
-
-    // A distinct difficulty and audio name matter even if osu! merges two exports under one song.
-    const audioName = `audio-${exportId}.${extension}`;
+    const audioName = `audio-${id}.${extension}`;
     const osu = sourceOsu
-        .replace(/^AudioFilename:[^\r\n]+$/m, `AudioFilename:${audioName}`)
-        .replace(/^Version:[^\r\n]+$/m, `Version:${version[1]} [${exportId}]`);
-
-    const safeTitle = Array.from(title.replace(/[\\/:*?"<>|\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim())
-        .slice(0, 60).join('').replace(/^[. ]+|[. ]+$/g, '') || 'untitled';
-    const osuName = `${safeTitle}-s${seed}-${exportId}.osu`;
+        .replace(/^AudioFilename:.*$/m, () => `AudioFilename:${audioName}`)
+        .replace(/^Version:.*$/m, () => `Version:${version} #${id}`);
     const osz = zipSync({
-        [osuName]: strToU8(osu),
+        [`${safeName(chart.title, 40)}-s${chart.seed}-${id}.osu`]: strToU8(osu),
         [audioName]: [audio, { level: 0 }],
         'receipt.json': strToU8(receiptJson + '\n'),
     }, { level: 6 });
+    // The seed and ID come after the capped title, so that a long title cannot cut them off.
+    const name = `${safeName(`${chart.artist ? `${chart.artist} - ` : ''}${chart.title}`, 80)} (ensomi R2 s${chart.seed} ${id})`;
+    return { name, osu, osz };
+}
 
-    return { osu, osz, osuName, exportId };
+/** Eight random hexadecimal digits, drawn for each result. */
+export const exportId = () => crypto.getRandomValues(new Uint32Array(1))[0].toString(16).padStart(8, '0');
+
+/** `text` as a file name on Windows, macOS and Linux: path separators, the characters Windows refuses and control
+ * characters become spaces, at most `max` characters (code points, so none is cut in half), no leading or trailing dots
+ * or spaces, and `untitled` when nothing is left. */
+export function safeName(text: string, max: number) {
+    const words = text.replace(/[\\/:*?"<>|\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim();
+    return Array.from(words).slice(0, max).join('').replace(/^[. ]+|[. ]+$/g, '') || 'untitled';
 }

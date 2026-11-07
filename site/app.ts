@@ -1,6 +1,7 @@
 import { ControlStatus, GenerationPhase, PatternKind, decodeAudio, type GenerateChartRequest, type GenerationResult, type ModelCapabilities, type SectionRequest } from '@ensomi/runtime';
 import { decodeSong } from './audio.js';
 import { maniaStar } from './star.js';
+import { chartDownloads } from './osz.js';
 import { Player, RATES, VISUAL_SPEEDS } from './player.js';
 import { t } from './i18n.js';
 
@@ -388,11 +389,12 @@ function showResult(result: GenerationResult) {
     phase.seconds[GenerationPhase.EXPORT] = detail.seconds.export;
     finishRun();
     for (const url of urls) URL.revokeObjectURL(url);
-    const name = `${done.artist ? `${done.artist} - ` : ''}${done.title} (ensomi R2 s${done.seed})`.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '').trim().slice(0, 120);
-    const osz = URL.createObjectURL(new Blob([result.osz! as BlobPart], { type: 'application/zip' })), osu = URL.createObjectURL(new Blob([result.osu], { type: 'text/plain' })), audio = URL.createObjectURL(done.song.file);
+    // The runtime's own .osz (result.osz) names every chart generated.osu; each result's downloads are its own (site/osz.ts).
+    const files = chartDownloads(result.osu, result.receipt.receipt_json, new Uint8Array(done.song.buffer), done);
+    const osz = URL.createObjectURL(new Blob([files.osz as BlobPart], { type: 'application/zip' })), osu = URL.createObjectURL(new Blob([files.osu], { type: 'text/plain' })), audio = URL.createObjectURL(done.song.file);
     urls = [osz, osu, audio];
-    Object.assign($<HTMLAnchorElement>('get-osz'), { href: osz, download: `${name}.osz` });
-    Object.assign($<HTMLAnchorElement>('get-osu'), { href: osu, download: `${name}.osu` });
+    Object.assign($<HTMLAnchorElement>('get-osz'), { href: osz, download: `${files.name}.osz` });
+    Object.assign($<HTMLAnchorElement>('get-osu'), { href: osu, download: `${files.name}.osu` });
 
     const facts: [string, string][] = [
         [t.receipt.model, `${result.receipt.model_name} ${result.receipt.model_version}`],

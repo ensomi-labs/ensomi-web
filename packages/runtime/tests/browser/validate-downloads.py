@@ -11,7 +11,7 @@ for path in sorted((root / 'bulk').glob('*.osz')):
     chart = json.loads(chart_path.read_text())
     with ZipFile(path) as archive:
         bad_crc = archive.testzip()
-        text = archive.read('generated.osu').decode()
+        text = archive.read(next(n for n in archive.namelist() if n.endswith('.osu'))).decode()
         receipt = json.loads(archive.read('receipt.json'))
         objects = []
         for line in text.split('[HitObjects]\n')[1].strip().splitlines():

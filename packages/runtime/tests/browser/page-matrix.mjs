@@ -62,8 +62,9 @@ async function generate(song,warm,section=false,seed='1',tag=''){
  if(data.chart){
   row.validation=validate(data.chart);row.chartSha256=createHash('sha256').update(JSON.stringify(data.chart)).digest('hex');row.detail=JSON.parse(data.receipt.receipt_json);
   for(const kind of ['osz','osu']){const wait=page.waitForEvent('download');await page.locator(`#get-${kind}`).click();const download=await wait;await download.saveAs(join(bulk,`${label}.${kind}`));}
-  const archive=unzipSync(await readFile(join(bulk,`${label}.osz`)));const audioKey=Object.keys(archive).find(k=>k.startsWith('audio.'));
-  row.archive={names:Object.keys(archive),audioExact:Buffer.from(archive[audioKey]).equals(await readFile(audioPath)),osuExact:strFromU8(archive['generated.osu'])===await readFile(join(bulk,`${label}.osu`),'utf8'),receiptExact:strFromU8(archive['receipt.json']).trim()===data.receipt.receipt_json};
+  // site/osz.ts names the chart and the song with the export ID, which the .osu's AudioFilename gives too.
+  const archive=unzipSync(await readFile(join(bulk,`${label}.osz`)));const names=Object.keys(archive),osuKey=names.find(k=>k.endsWith('.osu')),audioKey=names.find(k=>k.startsWith('audio-')),osu=strFromU8(archive[osuKey]);
+  row.archive={names,audioExact:Buffer.from(archive[audioKey]).equals(await readFile(audioPath)),audioNamed:osu.includes(`\nAudioFilename:${audioKey}\n`),osuExact:osu===await readFile(join(bulk,`${label}.osu`),'utf8'),receiptExact:strFromU8(archive['receipt.json']).trim()===data.receipt.receipt_json};
   await writeFile(join(bulk,`${label}-chart.json`),JSON.stringify(data.chart));delete row.chart;delete row.receipt;
  }if(row.error||row.validation?.length||row.archive&&Object.values(row.archive).some(v=>v===false))process.exitCode=1;
  // With exact timing the times table has the second decode and the receipt list a Timing row; without, neither.
