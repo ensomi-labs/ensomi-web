@@ -102,6 +102,10 @@
           <label>种子 · 留空则每次生成新谱面
             <span class="seed-row"><input type="text" id="seed" inputmode="numeric" placeholder="随机" spellcheck="false"><button type="button" class="btn small" id="new-seed">换一个种子</button></span></label>
         </div>
+        <div class="precise">
+          <label><input type="checkbox" id="precise" aria-describedby="precise-note"> 精确难度</label>
+          <p class="small muted" id="precise-note">最多生成 <span id="precise-tries">6</span> 张谱面，保留星数最接近的一张。耗时更长。</p>
+        </div>
         <div class="exact">
           <label><input type="checkbox" id="exact" aria-describedby="exact-note"> 精确时间轴</label>
           <p class="small muted" id="exact-note">按歌曲原始采样率解码，并用与 Python 版相同的方式转换，使节拍时间与 Python 版的差距在千分之几毫秒以内（关闭时最多约 1.3 毫秒）。每首歌多花约 0.5 秒，高采样率文件更久（96 kHz 时约 1.3 秒）。</p>

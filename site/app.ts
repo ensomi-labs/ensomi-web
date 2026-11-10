@@ -3,6 +3,7 @@ import { decodeSong } from './audio.js';
 import { maniaStar } from './star.js';
 import { bundle, chartFile, shortHash, type Chart } from './osz.js';
 import { Player, RATES, VISUAL_SPEEDS } from './player.js';
+import { PRECISE, type Try } from './precise.js';
 import { t } from './i18n.js';
 
 /** The generator page: model loading, song decoding, conditions, progress, result and inspector. */
@@ -26,7 +27,10 @@ interface SectionDraft { start: string; end: string; kind: string; strength: num
 /** A song's audio stages, run in the worker as soon as the model and the song are ready. `posted` settles once the worker
  * has the request, `seconds` arrive when the stages are done. */
 interface Prep { id: number; song: Song; exact: boolean; posted: Promise<void>; decode?: { rate: number; seconds: number }; seconds?: { pcm: number; timing: number }; failed?: boolean }
-interface Job { song: Song; title: string; artist: string; seed: number | bigint; random: boolean; star: number; sections: SectionRequest[]; prep: Prep }
+/** `precise` is the Precise difficulty option: the worker then searches from `star` and `seed` (site/precise.ts). */
+interface Job { song: Song; title: string; artist: string; seed: number | bigint; random: boolean; star: number; precise: boolean; sections: SectionRequest[]; prep: Prep }
+/** What a Precise difficulty search made: every try, the index of the one whose chart is the result, and their seconds. */
+interface Search { tries: Try[]; best: number; seconds: number }
 
 let worker: Worker | undefined, caps: ModelCapabilities | undefined, provider = '', threads = 1, loadSeconds = 0, loading = false;
 let song: Song | undefined, prep: Prep | undefined, prepCount = 0, job: Job | undefined, generating = false, timer = 0;
@@ -62,7 +66,8 @@ function startWorker() {
         else if (data.type === 'loaded') onLoaded(data);
         else if (data.type === 'phase') markPhase(data);
         else if (data.type === 'prepared') onPrepared(data);
-        else if (data.type === 'result') showResult(data.result);
+        else if (data.type === 'try') $('run-status').textContent = t.generatingTry(providerName(provider), data.index, data.of);
+        else if (data.type === 'result') showResult(data.result, data.precise);
         else if (data.type === 'error') onError(data);
     };
     w.onerror = event => onError({ during: loading ? 'load' : 'generate', message: event.message || t.workerFailed });
@@ -224,6 +229,7 @@ function showRecommended({ min_star: from, max_star_exclusive: to }: ModelCapabi
 }
 field('star').addEventListener('input', () => { $('star-value').textContent = Number(field('star').value).toFixed(1); });
 field('seed').addEventListener('input', update);
+$('precise-tries').textContent = String(PRECISE.tries);
 $('new-seed').addEventListener('click', () => {
     field('seed').value = String(randomSeed());
     update();
@@ -334,7 +340,7 @@ async function generate() {
     if (!prep || prep.failed) startPrepare();
     // A blank seed draws a new seed for each generation, as in the app; the result shows the seed used.
     const title = field('title').value.trim() || song.file.name.replace(/\.[^.]+$/, ''), artist = field('artist').value.trim(), seed = entered === 'random' ? randomSeed() : entered;
-    job = { song, title, artist, seed, random: entered === 'random', star: Number(field('star').value), sections: requests, prep: prep! };
+    job = { song, title, artist, seed, random: entered === 'random', star: Number(field('star').value), precise: field('precise').checked, sections: requests, prep: prep! };
     generating = true;
     phase.seconds.length = GenerationPhase.ROWS;
     if (job.prep.seconds) {
@@ -350,7 +356,7 @@ async function generate() {
         finishRun();
         return update();
     }
-    worker!.postMessage({ type: 'generate', request, audio: { name: song.file.name, bytes: new Uint8Array(song.buffer) } });
+    worker!.postMessage({ type: 'generate', request, precise: job.precise, audio: { name: song.file.name, bytes: new Uint8Array(song.buffer) } });
 }
 $('generate-button').addEventListener('click', generate);
 $('regenerate').addEventListener('click', generate);
@@ -405,8 +411,13 @@ function starText(measured: number, requested: number) {
     return Math.abs(gap) > STAR_NEAR ? t.starFar(measured.toFixed(2), requested.toFixed(1), Math.abs(gap).toFixed(1), gap > 0) : t.starResult(measured.toFixed(2), requested.toFixed(1));
 }
 
-function showResult(result: GenerationResult) {
+/** Shows a generated chart. After a Precise difficulty search it is the closest chart, `search` says how it was found,
+ * and the seed in its `.osu`, its file names and the line under the lanes is its own try's; the Seed row keeps the seed
+ * the search started from, which gives this chart again with the same star and Precise difficulty. */
+function showResult(result: GenerationResult, search?: Search) {
     const done = job!, detail = JSON.parse(result.receipt.receipt_json), objects = result.chart.objects, holds = objects.filter(o => o.end_ms !== undefined).length;
+    // The receipt times its own chart; a search took the time of every chart it made.
+    const chosen = search?.tries[search.best], took: number = search?.seconds ?? detail.seconds.total;
     phase.seconds[GenerationPhase.ROWS] = detail.seconds.rows;
     phase.seconds[GenerationPhase.ARRANGEMENT] = detail.seconds.prior + detail.seconds.arrangement;
     phase.seconds[GenerationPhase.EXPORT] = detail.seconds.export;
@@ -414,7 +425,7 @@ function showResult(result: GenerationResult) {
     for (const url of urls) URL.revokeObjectURL(url);
     const audio = URL.createObjectURL(done.song.file);
     urls = [audio];
-    showChart(result, done).catch(error => showError(t.generationFailed(error instanceof Error ? error.message : String(error))));
+    showChart(result, chosen ? { ...done, seed: chosen.seed } : done).catch(error => showError(t.generationFailed(error instanceof Error ? error.message : String(error))));
 
     const facts: [string, string][] = [
         [t.receipt.model, `${result.receipt.model_name} ${result.receipt.model_version}`],
@@ -422,6 +433,8 @@ function showResult(result: GenerationResult) {
         [t.receipt.song, `${done.song.file.name} · ${clock(done.song.durationMs)}`],
         [t.receipt.star, starText(maniaStar(objects), done.star)],
         [t.receipt.seed, done.random ? t.randomSeed(String(done.seed)) : String(done.seed)],
+        // The downloaded receipt records what this chart asked the model for, not the star and seed the search began with.
+        ...(chosen ? [[t.receipt.precise, t.preciseResult(search!.tries.length, chosen.r.toFixed(2), String(chosen.seed))] as [string, string]] : []),
         [t.receipt.notes, t.noteCounts(objects.length.toLocaleString('en'), (objects.length - holds).toLocaleString('en'), holds.toLocaleString('en'))],
         [t.receipt.headRows, Number(detail.rows.K).toLocaleString('en')],
         [t.receipt.tempo, detail.rows.segments.map((s: number[]) => (60000 / s[1]).toFixed(1)).join(', ') + ' BPM'],
@@ -436,7 +449,7 @@ function showResult(result: GenerationResult) {
     }));
     // The audio stages ran when the song was chosen; the receipt times the stages after them, and its total is theirs.
     const { decode } = done.prep, stages = done.prep.seconds!;
-    const rows: [string, number, boolean?][] = [[t.modelLoad, loadSeconds], [t.audioDecode, done.song.decodeSeconds], ...(decode ? [[t.exactDecode, decode.seconds] as [string, number]] : []), [t.times.pcm, stages.pcm], [t.times.timing, stages.timing], ...RECEIPT_TIMES.map((key): [string, number] => [t.times[key], detail.seconds[key]]), [t.total, detail.seconds.total, true]];
+    const rows: [string, number, boolean?][] = [[t.modelLoad, loadSeconds], [t.audioDecode, done.song.decodeSeconds], ...(decode ? [[t.exactDecode, decode.seconds] as [string, number]] : []), [t.times.pcm, stages.pcm], [t.times.timing, stages.timing], ...RECEIPT_TIMES.map((key): [string, number] => [t.times[key], detail.seconds[key]]), [t.total, detail.seconds.total, true], ...(search ? [[t.preciseTotal, search.seconds] as [string, number]] : [])];
     $('times').replaceChildren(...rows.map(([label, seconds, total]) => {
         const tr = document.createElement('tr'), th = document.createElement('th'), td = document.createElement('td');
         th.scope = 'row';
@@ -446,13 +459,13 @@ function showResult(result: GenerationResult) {
         tr.append(th, td);
         return tr;
     }));
-    $('times-total').textContent = t.generatedIn(detail.seconds.total.toFixed(1));
+    $('times-total').textContent = t.generatedIn(took.toFixed(1));
 
     $('result').hidden = false;
     player.audio.src = audio;
     player.load({ chart: result.chart, segments: detail.rows.segments, sections: done.sections });
-    $('identity').textContent = [done.title, done.artist, `ensomi R2 s${done.seed}`].filter(Boolean).join(' · ');
-    $('run-status').textContent = t.doneIn(detail.seconds.total.toFixed(1));
+    $('identity').textContent = [done.title, done.artist, `ensomi R2 s${chosen?.seed ?? done.seed}`].filter(Boolean).join(' · ');
+    $('run-status').textContent = t.doneIn(took.toFixed(1));
     update();
     $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
