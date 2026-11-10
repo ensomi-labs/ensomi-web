@@ -104,8 +104,9 @@
         <div class="pair">
           <div class="star">
             <label><span class="star-label">Star rating <output id="star-value">3.5</output></span>
-              <input type="range" id="star" min="2" max="5.9" step="0.1" value="3.5" aria-describedby="star-note"></label>
-            <p class="small muted" id="star-note">A generated chart can come out easier or harder than the rating asked for; difficulty control will be refined.</p>
+              <input type="range" id="star" min="1" max="9" step="0.1" value="3.5" aria-describedby="star-note">
+              <span class="star-scale" id="star-scale" aria-hidden="true"></span></label>
+            <p class="small muted" id="star-note"><span id="star-from">2</span>–<span id="star-to">6</span> stars is recommended. The result shows the star rating the chart actually came out at.</p>
           </div>
           <label>Seed · blank for a new chart each time
             <span class="seed-row"><input type="text" id="seed" inputmode="numeric" placeholder="Random" spellcheck="false"><button type="button" class="btn small" id="new-seed">New seed</button></span></label>

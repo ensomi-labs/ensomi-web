@@ -17,6 +17,8 @@ const KINDS: Record<string, PatternKind | 'star'> = { jumpstream: PatternKind.JU
 const RECEIPT_TIMES = ['rows', 'prior', 'arrangement', 'export'];
 // The stages that read the conditions; they run together when Generate is pressed, without progress of their own.
 const CHART_PHASES = [GenerationPhase.ROWS, GenerationPhase.ARRANGEMENT, GenerationPhase.EXPORT];
+// A chart further than this from the star asked for says so in words in its result.
+const STAR_NEAR = 0.5;
 
 /** `audioId`, the ID of the song's bytes in its `.osz` (site/osz.ts), is taken once, for its first result. */
 interface Song { file: File; buffer: ArrayBuffer; mel: Float32Array; beatthis: Float32Array; durationMs: number; decodeSeconds: number; audioId?: Promise<string> }
@@ -109,9 +111,7 @@ function onLoaded(data: { capabilities: ModelCapabilities; provider: string; thr
     loading = false;
     $('model-meter').hidden = true;
     $('model-status').textContent = t.modelReady(`${caps.model_name} ${caps.model_version}`, providerName(provider), loadSeconds.toFixed(1));
-    const star = field('star');
-    star.min = String(caps.min_star);
-    star.max = String(Math.round((caps.max_star_exclusive - 0.1) * 10) / 10);
+    showRecommended(caps);
     renderSections();
     startPrepare();
     update();
@@ -211,6 +211,17 @@ function onPrepared(data: { id: number; seconds: { pcm: number; timing: number }
 }
 
 // 3. Conditions
+/** The stars the model was fitted on, which the note by the slider recommends and the band under its track marks; the
+ * page says 2–6 until the model is loaded. The stars offered are the slider's own range, set in the page: the runtime
+ * takes any star and the capabilities no longer bound the request. */
+function showRecommended({ min_star: from, max_star_exclusive: to }: ModelCapabilities) {
+    const star = field('star'), min = Number(star.min), span = Number(star.max) - min;
+    const percent = (value: number) => `${Math.min(1, Math.max(0, (value - min) / span)) * 100}%`;
+    $('star-from').textContent = String(from);
+    $('star-to').textContent = String(to);
+    $('star-scale').style.setProperty('--from', percent(from));
+    $('star-scale').style.setProperty('--to', percent(to));
+}
 field('star').addEventListener('input', () => { $('star-value').textContent = Number(field('star').value).toFixed(1); });
 field('seed').addEventListener('input', update);
 $('new-seed').addEventListener('click', () => {
@@ -261,7 +272,7 @@ function renderSections() {
         end.value = section.end;
         for (const option of options) kind.add(new Option(kindLabel(option.name, option.status), option.name, false, option.name === section.kind));
         q('.value-name').textContent = isStar ? t.star : t.strength;
-        Object.assign(value, isStar ? { min: String(caps!.min_star), max: field('star').max, step: '0.1' } : { min: '0', max: '1', step: '0.05' });
+        Object.assign(value, isStar ? { min: field('star').min, max: field('star').max, step: field('star').step } : { min: '0', max: '1', step: '0.05' });
         value.value = String(isStar ? section.star : section.strength);
         output.textContent = isStar ? section.star.toFixed(1) : section.strength.toFixed(2);
         q('.note').textContent = options.find(o => o.name === section.kind)?.note ?? '';
@@ -387,6 +398,13 @@ const player = new Player($<HTMLCanvasElement>('lanes'), $<HTMLCanvasElement>('o
     $('clock').textContent = `${clock(ms, true)} / ${clock(player.duration)}`;
 });
 
+/** The star the chart came out at beside the star asked for, and in words how far apart they are when that is more than
+ * half a star: a request outside the stars the model was fitted on comes out near their edge. */
+function starText(measured: number, requested: number) {
+    const gap = measured - requested;
+    return Math.abs(gap) > STAR_NEAR ? t.starFar(measured.toFixed(2), requested.toFixed(1), Math.abs(gap).toFixed(1), gap > 0) : t.starResult(measured.toFixed(2), requested.toFixed(1));
+}
+
 function showResult(result: GenerationResult) {
     const done = job!, detail = JSON.parse(result.receipt.receipt_json), objects = result.chart.objects, holds = objects.filter(o => o.end_ms !== undefined).length;
     phase.seconds[GenerationPhase.ROWS] = detail.seconds.rows;
@@ -402,7 +420,7 @@ function showResult(result: GenerationResult) {
         [t.receipt.model, `${result.receipt.model_name} ${result.receipt.model_version}`],
         [t.receipt.provider, providerName(provider)],
         [t.receipt.song, `${done.song.file.name} · ${clock(done.song.durationMs)}`],
-        [t.receipt.star, t.starResult(maniaStar(objects).toFixed(2), done.star.toFixed(1))],
+        [t.receipt.star, starText(maniaStar(objects), done.star)],
         [t.receipt.seed, done.random ? t.randomSeed(String(done.seed)) : String(done.seed)],
         [t.receipt.notes, t.noteCounts(objects.length.toLocaleString('en'), (objects.length - holds).toLocaleString('en'), holds.toLocaleString('en'))],
         [t.receipt.headRows, Number(detail.rows.K).toLocaleString('en')],
