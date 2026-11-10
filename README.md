@@ -40,7 +40,7 @@ Dependabot never updates `@ensomi/runtime`, whose exact pin moves with a runtime
 
 ## Search discovery
 
-The home pages describe the current open-source osu!mania 4K beatmap generator in their titles, descriptions and opening text, including using it directly in a desktop browser without installation or an account. Real-time beatmap generation and music understanding tools are research aims; N1's section names beat tracking and tempo mapping as its starting point. The brand statement stays unchanged. As the music understanding tools take shape, give each released tool a descriptive page at a stable URL, covering what it does, who it is for and how to use it, and link it from the home page. This lets people discover the individual tools as well as ensomi's wider research.
+The home pages' search titles and descriptions describe the current open-source osu!mania 4K beatmap generator and using it directly in a desktop browser without installation. They also point to real-time generation and music understanding tools as research aims. This SEO update preserves the deployed on-page content and presentation. As the music understanding tools take shape, give each released tool a descriptive page at a stable URL, covering what it does, who it is for and how to use it, and link it from the home page. This lets people discover the individual tools as well as ensomi's wider research.
 
 All six pages have their own canonical URL and reciprocal language alternates; `public/sitemap.xml` lists those canonical URLs, and `public/robots.txt` points crawlers to it. Add new public reading and tool pages to the sitemap when they are added, with the same canonical and language metadata. The English home page also carries `WebSite` structured data for the site's name.
 

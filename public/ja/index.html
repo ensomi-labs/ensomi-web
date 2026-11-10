@@ -55,7 +55,7 @@
       <p class="eyebrow">オープンな音楽研究 · R2 公開中</p>
       <h1 lang="en"><span class="name">ensomi</span> — Play the music around you.</h1>
       <p class="jp" lang="ja">えんそみ — 聴く音楽から、参加する音楽へ。</p>
-      <p class="lede">好きな曲を選ぶと、オープンソースの譜面生成ツール ensomi R2 が、このブラウザの中で osu!mania 4K の譜面を作ります。音楽に合わせて確認して、ダウンロードして osu! で遊べます。曲がパソコンの外に送られることはありません。</p>
+      <p class="lede">好きな曲を選ぶと、R2 がこのブラウザの中で譜面を作ります。音楽に合わせて譜面が流れるのを見てから、osu! に取り込んで自分で遊んでみてください。曲がパソコンの外に送られることはありません。</p>
     </div>
   </div>
 </div>
@@ -179,7 +179,7 @@
       <div class="cols">
         <div>
           <p class="eyebrow">まわりの音楽で遊ぶ</p>
-          <h3>リアルタイムの osu!mania 譜面生成へ。</h3>
+          <h3>身の回りの音楽が、遊べるものになる。</h3>
           <p>近くで曲がすでに流れています。ensomi はその曲を認識して再生位置を見つけ、リアルタイムで生成した譜面を始めます。譜面は音楽を止めることなく、音楽についていきます。</p>
         </div>
         <div>
@@ -202,8 +202,8 @@
     </section>
 
     <section id="r2">
-      <h2>R2：オープンソースの osu!mania 譜面生成</h2>
-      <p class="prose">R2 はパソコンのブラウザで、モデルを読み込み、曲を選ぶだけで使えます。インストールやアカウント登録は不要です。音声だけをもとに動き、曲が譜面になるまでに三つのことが起きます。</p>
+      <h2>R2：曲から、遊べる譜面へ</h2>
+      <p class="prose">R2 は、誰でも遊べる私たちの最初のリリースです。音声だけをもとに動き、曲が譜面になるまでに三つのことが起きます。</p>
       <ol class="steps">
         <li><b>ビートを見つける。</b><span>R2 はビートを聴き取り、テンポの区間ごとに、曲の音が鳴り始める位置へ合わせます。</span></li>
         <li><b>ノーツの位置を決める。</b><span>聴こえた音をもとに、一拍ごとにノーツの始まる位置を決めます。</span></li>
@@ -214,7 +214,7 @@
       <div class="actions">
         <a class="btn primary" href="https://huggingface.co/sed-i/ensomi-r2/tree/r2-1.0.1">Hugging Face のモデル</a>
         <a class="btn" href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_system.md">レポートを読む（英語）</a>
-        <a class="btn" href="https://github.com/ensomi-labs/ensomi-model/tree/r2-1.0.1">オープンソースのコード</a>
+        <a class="btn" href="https://github.com/ensomi-labs/ensomi-model/tree/r2-1.0.1">コード</a>
       </div>
     </section>
 
@@ -224,8 +224,8 @@
       <div class="cols tracks">
         <div id="n1">
           <p class="eyebrow">N1 · オープンな音楽理解</p>
-          <h3>オープンな音楽理解ツールをつくる。</h3>
-          <p>最初のノーツの前に、すべてのビートを見つける作業があります。地道で時間のかかる作業なのに、テンポの変化や変拍子、拍の取りにくい曲になると、いまのツールは頼りになりません。N1 は、開発中の音楽理解モデルです。まずはビート追跡とテンポマップの作成から始めます。</p>
+          <h3>最初のノーツの前に、すべてのビートを見つける作業がある。</h3>
+          <p>地道で時間のかかる作業なのに、テンポの変化や変拍子、拍の取りにくい曲になると、いまのツールは頼りになりません。N1 は、音楽を本当に聴き取るために開発しているモデルです。まずはタイミングから始めます。</p>
           <ol class="aims">
             <li>
               <h4>テンポマップから始める</h4>
