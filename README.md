@@ -38,6 +38,14 @@ Dependabot never updates `@ensomi/runtime`, whose exact pin moves with a runtime
 
 `npx wrangler deploy` from the repository root, logged in to the Cloudflare account that holds `ensomi.app`. Wrangler runs `npm run build:site` first (`build.command` in `wrangler.jsonc`).
 
+## Search discovery
+
+The home pages' search titles and descriptions describe the current open-source osu!mania 4K beatmap generator and using it directly in a desktop browser without installation. They also point to real-time generation and music understanding tools as research aims. This SEO update preserves the deployed on-page content and presentation. As the music understanding tools take shape, give each released tool a descriptive page at a stable URL, covering what it does, who it is for and how to use it, and link it from the home page. This lets people discover the individual tools as well as ensomi's wider research.
+
+All six pages have their own canonical URL and reciprocal language alternates; `public/sitemap.xml` lists those canonical URLs, and `public/robots.txt` points crawlers to it. Add new public reading and tool pages to the sitemap when they are added, with the same canonical and language metadata. The English home page also carries `WebSite` structured data for the site's name.
+
+After deploying, verify `ensomi.app` in [Google Search Console](https://search.google.com/search-console), submit `https://ensomi.app/sitemap.xml` and use URL Inspection on the home pages to check indexing and request a crawl. Search Console's Performance report shows which queries bring impressions and clicks, including searches for osu!mania beatmap generators and real-time generation. Repository metadata does not establish whether Search Console is configured. Google documents [sitemap discovery](https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview) and [Search Console setup](https://developers.google.com/search/docs/monitor-debug/search-console-start); a sitemap helps discovery but does not guarantee indexing or a particular ranking.
+
 ## Previews
 
 `.github/workflows/preview.yml` deploys each commit of a pull request to a [Worker Preview](https://developers.cloudflare.com/workers/previews/) of `ensomi-app` named `pr-<number>`, and keeps one comment on the pull request with two URLs: the Preview's, which follows the latest commit, and that commit's own. Closing or merging the pull request deletes the Preview and its URLs. Forks and Dependabot get no Actions secrets, so their pull requests have no Preview. `npx wrangler preview --name <name>` makes one by hand and `npx wrangler preview delete --name <name>` removes it.
