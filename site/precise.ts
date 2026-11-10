@@ -2,9 +2,10 @@
  *
  * The runtime generates once per request and seed, and a chart can come out easier or harder than its request. This
  * search asks again: it moves the request by how far the last chart missed, and once moving the request no longer
- * moves the star it keeps the best request and tries other seeds. It knows nothing of the page or the runtime: the
- * caller generates and measures. The Android app follows the same rule with the same constants, so that both give the
- * same charts; change them together. */
+ * moves the star it keeps the best request and tries other seeds. Its requests stay within the range the caller
+ * offers, so that it never asks for a star a person could not ask for. It knows nothing of the page or the runtime:
+ * the caller generates and measures. The Android app follows the same rule with the same constants, so that both give
+ * the same charts; change them together. */
 
 /** A seed as the page holds it: a number up to Number.MAX_SAFE_INTEGER, a bigint above, up to 64 bits. */
 export type Seed = number | bigint;
@@ -16,8 +17,6 @@ export const PRECISE = {
     tries: 6,
     /** A chart within this of the target ends the search. */
     tolerance: 0.05,
-    /** How far above or below the target a request may go. */
-    reach: 3,
     /** The least and the most measured stars per requested star that two tries may tell the next request. */
     slope: [0.5, 2.0] as readonly [number, number],
     /** A measured star or a request that moves less than this has stopped moving. */
@@ -32,15 +31,23 @@ export function addSeed(seed: Seed, n: number): Seed {
     return sum <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(sum) : sum;
 }
 
-/** Searches for a chart of `target` stars from `seed`. `generate` makes the chart of try `k` for a star and a seed and
- * gives its measured star; `keep` is called when the chart just made is the closest so far, so that the caller holds
- * on to that chart and drops the others. Gives the closest try, the earliest of equals, and every try in order. */
-export async function precise(target: number, seed: Seed, generate: (star: number, seed: Seed, k: number) => Promise<number>, keep?: (best: Try) => void, { tries: most, tolerance, reach, slope: [gentlest, steepest], still } = PRECISE) {
+/** Searches for a chart of `target` stars from `seed`, asking only for stars from `lowest` to `highest`, the range
+ * offered, both ends included; charts are judged against the target as it is. `generate` makes the chart of try `k`
+ * for a star and a seed and gives its measured star; `keep` is called when the chart just made is the closest so far,
+ * so that the caller holds on to that chart and drops the others. Gives the closest try, the earliest of equals, and
+ * every try in order. */
+export async function precise(target: number, seed: Seed, [lowest, highest]: readonly [number, number], generate: (star: number, seed: Seed, k: number) => Promise<number>, keep?: (best: Try) => void, { tries: most, tolerance, slope: [gentlest, steepest], still } = PRECISE) {
     const tries: Try[] = [];
-    let r = target, current = seed, saturated = false, seedTries = 0, best: Try | undefined;
+    let r = clamp(target, lowest, highest), current = seed, saturated = false, seedTries = 0, best: Try | undefined;
     for (let k = 0; ; k++) {
         const m = await generate(r, current, k), made: Try = { k, r, seed: current, m };
         tries.push(made);
+        // A star that is not a number cannot steer: the search ends with the closest chart before it, or with this one
+        // when it is the first.
+        if (!Number.isFinite(m)) {
+            if (!best) keep?.(made);
+            return { best: best ?? made, tries };
+        }
         if (!best || Math.abs(m - target) < Math.abs(best.m - target)) {
             best = made;
             keep?.(best);
@@ -55,7 +62,7 @@ export async function precise(target: number, seed: Seed, generate: (star: numbe
             if (prev && Math.abs(m - prev.m) < still) saturated = true;
             else {
                 const slope = prev ? clamp((m - prev.m) / (r - prev.r), gentlest, steepest) : 1;
-                const next = clamp(r + (target - m) / slope, target - reach, target + reach);
+                const next = clamp(r + (target - m) / slope, lowest, highest);
                 if (Math.abs(next - r) < still) saturated = true;
                 else r = next;
             }

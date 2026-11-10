@@ -95,13 +95,14 @@ async function chart(prepared: Prepared, request: GenerateChartRequest, audio: S
 }
 
 /** Precise difficulty (site/precise.ts): charts of the prepared song until one measures close enough to the star the
- * request asks for, each measured as the page measures its result. A try changes the request's whole-song star and
- * seed and nothing else, so sections keep their own targets. Gives the closest chart as the runtime made it, whose
- * `.osu` and receipt record the star and seed of its own try, with every try and the seconds they took together. */
-async function closestChart(prepared: Prepared, request: GenerateChartRequest, audio: SongFile) {
+ * request asks for, each measured as the page measures its result. A try changes the request's whole-song star, kept
+ * within `range`, the star slider's, and its seed, and nothing else, so sections keep their own targets. Gives the
+ * closest chart as the runtime made it, whose `.osu` and receipt record the star and seed of its own try, with every
+ * try and the seconds they took together. */
+async function closestChart(prepared: Prepared, request: GenerateChartRequest, audio: SongFile, range: [number, number]) {
     const start = performance.now();
     let made: GenerationResult | undefined, result: GenerationResult | undefined;
-    const { best, tries } = await precise(request.star, request.seed ?? 0, async (star, seed, k) => {
+    const { best, tries } = await precise(request.star, request.seed ?? 0, range, async (star, seed, k) => {
         post({ type: 'try', index: k + 1, of: PRECISE.tries });
         made = await chart(prepared, { ...request, star, seed }, audio);
         return maniaStar(made.chart.objects);
@@ -154,7 +155,7 @@ onmessage = async ({ data }: MessageEvent) => {
         else if (data.type === 'generate') {
             // The page asks only for the song it prepared last; a song chosen since then waits for this generation.
             const prepared = song!.prepared;
-            const done = await turn(async () => data.precise ? closestChart(await prepared, data.request, data.audio) : { result: await chart(await prepared, data.request, data.audio) });
+            const done = await turn(async () => data.precise ? closestChart(await prepared, data.request, data.audio, data.precise) : { result: await chart(await prepared, data.request, data.audio) });
             post({ type: 'result', ...done }, done.result.osz ? [done.result.osz.buffer] : []);
         }
     }

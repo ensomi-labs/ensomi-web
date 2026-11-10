@@ -27,8 +27,9 @@ interface SectionDraft { start: string; end: string; kind: string; strength: num
 /** A song's audio stages, run in the worker as soon as the model and the song are ready. `posted` settles once the worker
  * has the request, `seconds` arrive when the stages are done. */
 interface Prep { id: number; song: Song; exact: boolean; posted: Promise<void>; decode?: { rate: number; seconds: number }; seconds?: { pcm: number; timing: number }; failed?: boolean }
-/** `precise` is the Precise difficulty option: the worker then searches from `star` and `seed` (site/precise.ts). */
-interface Job { song: Song; title: string; artist: string; seed: number | bigint; random: boolean; star: number; precise: boolean; sections: SectionRequest[]; prep: Prep }
+/** `precise` is set with the Precise difficulty option: the worker then searches from `star` and `seed`, asking only for
+ * stars in that range, the star slider's (site/precise.ts). */
+interface Job { song: Song; title: string; artist: string; seed: number | bigint; random: boolean; star: number; precise?: [number, number]; sections: SectionRequest[]; prep: Prep }
 /** What a Precise difficulty search made: every try, the index of the one whose chart is the result, and their seconds. */
 interface Search { tries: Try[]; best: number; seconds: number }
 
@@ -331,7 +332,7 @@ async function generate() {
     if (!prep || prep.failed) startPrepare();
     // A blank seed draws a new seed for each generation, as in the app; the result shows the seed used.
     const title = field('title').value.trim() || song.file.name.replace(/\.[^.]+$/, ''), artist = field('artist').value.trim(), seed = entered === 'random' ? randomSeed() : entered;
-    job = { song, title, artist, seed, random: entered === 'random', star: Number(field('star').value), precise: field('precise').checked, sections: requests, prep: prep! };
+    job = { song, title, artist, seed, random: entered === 'random', star: Number(field('star').value), precise: field('precise').checked ? [Number(field('star').min), Number(field('star').max)] : undefined, sections: requests, prep: prep! };
     generating = true;
     phase.seconds.length = GenerationPhase.ROWS;
     if (job.prep.seconds) {
