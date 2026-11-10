@@ -38,6 +38,12 @@ Dependabot never updates `@ensomi/runtime`, whose exact pin moves with a runtime
 
 `npx wrangler deploy` from the repository root, logged in to the Cloudflare account that holds `ensomi.app`. Wrangler runs `npm run build:site` first (`build.command` in `wrangler.jsonc`).
 
+## Search discovery
+
+The home pages describe the current osu!mania 4K beatmap generator in their titles, descriptions and opening text, and real-time beatmap generation as a research aim. The brand statement stays unchanged. All six pages have their own canonical URL and reciprocal language alternates; `public/sitemap.xml` lists those canonical URLs, and `public/robots.txt` points crawlers to it. Add new public reading pages to the sitemap when they are added. The English home page also carries `WebSite` structured data for the site's name.
+
+After deploying, verify `ensomi.app` in [Google Search Console](https://search.google.com/search-console), submit `https://ensomi.app/sitemap.xml` and use URL Inspection on the home pages to check indexing and request a crawl. Search Console's Performance report shows which queries bring impressions and clicks, including searches for osu!mania beatmap generators and real-time generation. Repository metadata does not establish whether Search Console is configured. Google documents [sitemap discovery](https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview) and [Search Console setup](https://developers.google.com/search/docs/monitor-debug/search-console-start); a sitemap helps discovery but does not guarantee indexing or a particular ranking.
+
 ## Previews
 
 `.github/workflows/preview.yml` deploys each commit of a pull request to a [Worker Preview](https://developers.cloudflare.com/workers/previews/) of `ensomi-app` named `pr-<number>`, and keeps one comment on the pull request with two URLs: the Preview's, which follows the latest commit, and that commit's own. Closing or merging the pull request deletes the Preview and its URLs. Forks and Dependabot get no Actions secrets, so their pull requests have no Preview. `npx wrangler preview --name <name>` makes one by hand and `npx wrangler preview delete --name <name>` removes it.
