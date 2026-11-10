@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ensomi — AI osu!mania 4K Beatmap Generator</title>
-<meta name="description" content="Generate osu!mania 4K beatmaps from your songs in your browser. Try ensomi R2, download .osz charts, and explore our work toward real-time beatmap generation.">
+<title>ensomi — Open-Source AI osu!mania Beatmap Generator</title>
+<meta name="description" content="Open-source osu!mania 4K beatmap generator. Use it in your browser with no install. Explore our work on real-time generation and music understanding tools.">
 <link rel="canonical" href="https://ensomi.app/">
 <meta name="theme-color" content="#1c1525">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta property="og:title" content="ensomi — AI osu!mania 4K Beatmap Generator">
-<meta property="og:description" content="Generate osu!mania 4K beatmaps from your songs in your browser. Try ensomi R2, download .osz charts, and explore our work toward real-time beatmap generation.">
+<meta property="og:title" content="ensomi — Open-Source AI osu!mania Beatmap Generator">
+<meta property="og:description" content="Open-source osu!mania 4K beatmap generator. Use it in your browser with no install. Explore our work on real-time generation and music understanding tools.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ensomi">
 <meta property="og:image" content="https://ensomi.app/img/icon.webp">
@@ -64,7 +64,7 @@
       <p class="eyebrow">Open music research · R2 is playable now</p>
       <h1><span class="name">ensomi</span> — Play the music around you.</h1>
       <p class="jp" lang="ja">えんそみ — 聴く音楽から、参加する音楽へ。</p>
-      <p class="lede">Choose a song you love, and ensomi R2 generates an osu!mania 4K beatmap for you here in your browser. Watch the chart run against the music, then take it into osu! and play it yourself. The song never leaves your computer.</p>
+      <p class="lede">Choose a song you love, and ensomi R2, our open-source beatmap generator, creates an osu!mania 4K chart in your browser. Preview it, download it and play in osu!. Your song stays on your computer.</p>
     </div>
   </div>
 </div>
@@ -211,8 +211,8 @@
     </section>
 
     <section id="r2">
-      <h2>R2: from a song to a chart you can play</h2>
-      <p class="prose">R2 is our first publicly playable release. It works from the audio alone, and between your song and your chart, three things happen.</p>
+      <h2>R2: open-source osu!mania beatmap generation</h2>
+      <p class="prose">Use R2 straight from a desktop browser: load the model and choose a song, with no installation or account needed. R2 works from the audio alone, and between your song and your chart, three things happen.</p>
       <ol class="steps">
         <li><b>It finds the beat.</b><span>R2 listens for the beats, then lines each tempo section up with where the song's sounds begin.</span></li>
         <li><b>It chooses where notes fall.</b><span>Beat by beat, it decides where notes start, from what it hears.</span></li>
@@ -223,7 +223,7 @@
       <div class="actions">
         <a class="btn primary" href="https://huggingface.co/sed-i/ensomi-r2/tree/r2-1.0.1">Model on Hugging Face</a>
         <a class="btn" href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_system.md">Read the report</a>
-        <a class="btn" href="https://github.com/ensomi-labs/ensomi-model/tree/r2-1.0.1">Code</a>
+        <a class="btn" href="https://github.com/ensomi-labs/ensomi-model/tree/r2-1.0.1">Open-source code</a>
       </div>
     </section>
 
@@ -233,8 +233,8 @@
       <div class="cols tracks">
         <div id="n1">
           <p class="eyebrow">N1 · open music understanding</p>
-          <h3>Before the first note, a mapper has to find every beat.</h3>
-          <p>It is slow, careful work, and today's tools fall apart on tempo changes, odd meters and songs with a pulse that is hard to read. N1 is the model we are building to truly hear music, starting with timing.</p>
+          <h3>Building open music understanding tools.</h3>
+          <p>Before the first note, a mapper has to find every beat. It is slow, careful work, and today's tools fall apart on tempo changes, odd meters and songs with a pulse that is hard to read. N1 is the music understanding model we are building, starting with beat tracking and tempo mapping.</p>
           <ol class="aims">
             <li>
               <h4>Start from a tempo map</h4>

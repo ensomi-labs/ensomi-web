@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ensomi — AI osu!mania 4K 谱面生成器</title>
-<meta name="description" content="用 ensomi R2 在浏览器里为喜欢的歌曲自动生成 osu!mania 4K 谱面，下载 .osz 后即可游玩。了解我们迈向实时谱面生成的开放研究。">
+<title>ensomi — 开源 AI osu!mania 谱面生成器</title>
+<meta name="description" content="开源 osu!mania 4K AI 谱面生成器 ensomi R2，在电脑浏览器中即可使用，无需安装或注册。探索我们在实时谱面生成、节拍检测和音乐理解工具方面的研究。">
 <link rel="canonical" href="https://ensomi.app/zh/">
 <meta name="theme-color" content="#1c1525">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta property="og:title" content="ensomi — AI osu!mania 4K 谱面生成器">
-<meta property="og:description" content="用 ensomi R2 在浏览器里为喜欢的歌曲自动生成 osu!mania 4K 谱面，下载 .osz 后即可游玩。了解我们迈向实时谱面生成的开放研究。">
+<meta property="og:title" content="ensomi — 开源 AI osu!mania 谱面生成器">
+<meta property="og:description" content="开源 osu!mania 4K AI 谱面生成器 ensomi R2，在电脑浏览器中即可使用，无需安装或注册。探索我们在实时谱面生成、节拍检测和音乐理解工具方面的研究。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ensomi">
 <meta property="og:image" content="https://ensomi.app/img/icon.webp">
@@ -55,7 +55,7 @@
       <p class="eyebrow">开放的音乐研究 · R2 现已可玩</p>
       <h1 lang="en"><span class="name">ensomi</span> — Play the music around you.</h1>
       <p class="jp" lang="ja">えんそみ — 聴く音楽から、参加する音楽へ。</p>
-      <p class="lede">选一首你喜欢的歌，ensomi R2 就在你的浏览器里为它自动生成 osu!mania 4K 谱面。先看着谱面跟着音乐滚动，再导入 osu! 亲自玩。歌曲不会离开你的电脑。</p>
+      <p class="lede">选一首你喜欢的歌，开源 AI 谱面生成器 ensomi R2 就在你的浏览器里为它生成 osu!mania 4K 谱面。先跟着音乐预览，再下载到 osu! 里玩。歌曲不会离开你的电脑。</p>
     </div>
   </div>
 </div>
@@ -202,8 +202,8 @@
     </section>
 
     <section id="r2">
-      <h2>R2：从一首歌到一张能玩的谱面</h2>
-      <p class="prose">R2 是我们首个公开可玩的版本。它只依靠音频工作，从你的歌到你的谱面，中间经过三步。</p>
+      <h2>R2：开源 osu!mania 谱面生成器</h2>
+      <p class="prose">在电脑浏览器中加载模型、选择歌曲就能使用 R2，无需安装或注册。它只依靠音频工作，从你的歌到你的谱面，中间经过三步。</p>
       <ol class="steps">
         <li><b>找到节拍。</b><span>R2 先听出节拍，再把每个速度段对齐到歌曲中声音开始的位置。</span></li>
         <li><b>决定音符落在哪里。</b><span>根据听到的声音，一拍一拍地决定音符从哪里开始。</span></li>
@@ -214,7 +214,7 @@
       <div class="actions">
         <a class="btn primary" href="https://huggingface.co/sed-i/ensomi-r2/tree/r2-1.0.1">Hugging Face 上的模型</a>
         <a class="btn" href="https://github.com/ensomi-labs/ensomi-model/blob/main/docs/research/r2_system.md">阅读报告（英文）</a>
-        <a class="btn" href="https://github.com/ensomi-labs/ensomi-model/tree/r2-1.0.1">代码</a>
+        <a class="btn" href="https://github.com/ensomi-labs/ensomi-model/tree/r2-1.0.1">开源代码</a>
       </div>
     </section>
 
@@ -224,8 +224,8 @@
       <div class="cols tracks">
         <div id="n1">
           <p class="eyebrow">N1 · 开放的音乐理解</p>
-          <h3>放下第一个音符之前，谱师要先找出每一拍。</h3>
-          <p>这是又慢又细的活，而一遇到变速、奇数拍或律动难辨的歌，现有工具就靠不住了。N1 是我们正在打造的、真正听懂音乐的模型，从时间轴开始。</p>
+          <h3>打造开放的音乐理解工具。</h3>
+          <p>放下第一个音符之前，谱师要先找出每一拍。这是又慢又细的活，而一遇到变速、奇数拍或律动难辨的歌，现有工具就靠不住了。N1 是我们正在打造的音乐理解模型，从节拍检测和速度图生成开始。</p>
           <ol class="aims">
             <li>
               <h4>从一份时间轴开始</h4>
