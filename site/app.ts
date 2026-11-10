@@ -116,7 +116,9 @@ function onLoaded(data: { capabilities: ModelCapabilities; provider: string; thr
     loading = false;
     $('model-meter').hidden = true;
     $('model-status').textContent = t.modelReady(`${caps.model_name} ${caps.model_version}`, providerName(provider), loadSeconds.toFixed(1));
-    showRecommended(caps);
+    const star = field('star');
+    star.min = String(caps.min_star);
+    star.max = String(Math.round((caps.max_star_exclusive - 0.1) * 10) / 10);
     renderSections();
     startPrepare();
     update();
@@ -216,17 +218,6 @@ function onPrepared(data: { id: number; seconds: { pcm: number; timing: number }
 }
 
 // 3. Conditions
-/** The stars the model was fitted on, which the note by the slider recommends and the band under its track marks; the
- * page says 2–6 until the model is loaded. The stars offered are the slider's own range, set in the page: the runtime
- * takes any star and the capabilities no longer bound the request. */
-function showRecommended({ min_star: from, max_star_exclusive: to }: ModelCapabilities) {
-    const star = field('star'), min = Number(star.min), span = Number(star.max) - min;
-    const percent = (value: number) => `${Math.min(1, Math.max(0, (value - min) / span)) * 100}%`;
-    $('star-from').textContent = String(from);
-    $('star-to').textContent = String(to);
-    $('star-scale').style.setProperty('--from', percent(from));
-    $('star-scale').style.setProperty('--to', percent(to));
-}
 field('star').addEventListener('input', () => { $('star-value').textContent = Number(field('star').value).toFixed(1); });
 field('seed').addEventListener('input', update);
 $('precise-tries').textContent = String(PRECISE.tries);
@@ -278,7 +269,7 @@ function renderSections() {
         end.value = section.end;
         for (const option of options) kind.add(new Option(kindLabel(option.name, option.status), option.name, false, option.name === section.kind));
         q('.value-name').textContent = isStar ? t.star : t.strength;
-        Object.assign(value, isStar ? { min: field('star').min, max: field('star').max, step: field('star').step } : { min: '0', max: '1', step: '0.05' });
+        Object.assign(value, isStar ? { min: String(caps!.min_star), max: field('star').max, step: '0.1' } : { min: '0', max: '1', step: '0.05' });
         value.value = String(isStar ? section.star : section.strength);
         output.textContent = isStar ? section.star.toFixed(1) : section.strength.toFixed(2);
         q('.note').textContent = options.find(o => o.name === section.kind)?.note ?? '';
@@ -405,7 +396,7 @@ const player = new Player($<HTMLCanvasElement>('lanes'), $<HTMLCanvasElement>('o
 });
 
 /** The star the chart came out at beside the star asked for, and in words how far apart they are when that is more than
- * half a star: a request outside the stars the model was fitted on comes out near their edge. */
+ * half a star, which a first chart often is. */
 function starText(measured: number, requested: number) {
     const gap = measured - requested;
     return Math.abs(gap) > STAR_NEAR ? t.starFar(measured.toFixed(2), requested.toFixed(1), Math.abs(gap).toFixed(1), gap > 0) : t.starResult(measured.toFixed(2), requested.toFixed(1));

@@ -95,9 +95,8 @@
         <div class="pair">
           <div class="star">
             <label><span class="star-label">星数 <output id="star-value">3.5</output></span>
-              <input type="range" id="star" min="1" max="9" step="0.1" value="3.5" aria-describedby="star-note">
-              <span class="star-scale" id="star-scale" aria-hidden="true"></span></label>
-            <p class="small muted" id="star-note">推荐 <span id="star-from">2</span>–<span id="star-to">6</span> 星。结果会显示谱面实际的星数。</p>
+              <input type="range" id="star" min="2" max="5.9" step="0.1" value="3.5" aria-describedby="star-note"></label>
+            <p class="small muted" id="star-note">生成的谱面可能比要求的星数更简单或更难；难度控制还会继续改进。</p>
           </div>
           <label>种子 · 留空则每次生成新谱面
             <span class="seed-row"><input type="text" id="seed" inputmode="numeric" placeholder="随机" spellcheck="false"><button type="button" class="btn small" id="new-seed">换一个种子</button></span></label>
