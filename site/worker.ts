@@ -1,4 +1,6 @@
-import { ChartScheduler, GenerationPhase, loadModels, localFilesSource, prepare, urlSource, type FileSource, type Models, type Prepared } from '@ensomi/runtime';
+import { ChartScheduler, GenerationPhase, loadModels, localFilesSource, prepare, urlSource, type FileSource, type GenerateChartRequest, type GenerationResult, type Models, type Prepared } from '@ensomi/runtime';
+import { PRECISE, precise } from './precise.js';
+import { maniaStar } from './star.js';
 
 /** Generation worker: loads the model once, runs the audio stages of each song the page decoded as soon as it is
  * chosen, and generates charts from them when asked. */
@@ -75,6 +77,39 @@ async function webgpuAdapter() {
     }
 }
 
+type SongFile = { name: string; bytes: Uint8Array };
+
+/** One whole chart of the prepared song. */
+async function chart(prepared: Prepared, request: GenerateChartRequest, audio: SongFile) {
+    const scheduler = await ChartScheduler.create(models!, prepared, request, { mode: 'whole-chart', audio });
+    try {
+        scheduler.start(0);
+        for (;;) {
+            const action = await scheduler.work();
+            if (action.kind === 'done') return action.result!;
+        }
+    }
+    finally {
+        scheduler.free();
+    }
+}
+
+/** Precise difficulty (site/precise.ts): charts of the prepared song until one measures close enough to the star the
+ * request asks for, each measured as the page measures its result. A try changes the request's whole-song star, kept
+ * within `range`, the star slider's, and its seed, and nothing else, so sections keep their own targets. Gives the
+ * closest chart as the runtime made it, whose `.osu` and receipt record the star and seed of its own try, with every
+ * try and the seconds they took together. */
+async function closestChart(prepared: Prepared, request: GenerateChartRequest, audio: SongFile, range: [number, number]) {
+    const start = performance.now();
+    let made: GenerationResult | undefined, result: GenerationResult | undefined;
+    const { best, tries } = await precise(request.star, request.seed ?? 0, range, async (star, seed, k) => {
+        post({ type: 'try', index: k + 1, of: PRECISE.tries });
+        made = await chart(prepared, { ...request, star, seed }, audio);
+        return maniaStar(made.chart.objects);
+    }, () => { result = made; });
+    return { result: result!, precise: { tries, best: best.k, seconds: (performance.now() - start) / 1000 } };
+}
+
 onmessage = async ({ data }: MessageEvent) => {
     try {
         if (data.type === 'load') {
@@ -120,20 +155,8 @@ onmessage = async ({ data }: MessageEvent) => {
         else if (data.type === 'generate') {
             // The page asks only for the song it prepared last; a song chosen since then waits for this generation.
             const prepared = song!.prepared;
-            const result = await turn(async () => {
-                const scheduler = await ChartScheduler.create(models!, await prepared, data.request, { mode: 'whole-chart', audio: data.audio });
-                try {
-                    scheduler.start(0);
-                    for (;;) {
-                        const action = await scheduler.work();
-                        if (action.kind === 'done') return action.result!;
-                    }
-                }
-                finally {
-                    scheduler.free();
-                }
-            });
-            post({ type: 'result', result }, result.osz ? [result.osz.buffer] : []);
+            const done = await turn(async () => data.precise ? closestChart(await prepared, data.request, data.audio, data.precise) : { result: await chart(await prepared, data.request, data.audio) });
+            post({ type: 'result', ...done }, done.result.osz ? [done.result.osz.buffer] : []);
         }
     }
     catch (error) {
