@@ -36,7 +36,9 @@ Dependabot never updates `@ensomi/runtime`, whose exact pin moves with a runtime
 
 ## Deploy
 
-`npx wrangler deploy` from the repository root, logged in to the Cloudflare account that holds `ensomi.app`. Wrangler runs `npm run build:site` first (`build.command` in `wrangler.jsonc`).
+Run the **Deploy** workflow (`.github/workflows/deploy.yml`) by hand from Actions on `main`. It runs the checks, waits for `s3d-i` approval on the `production` environment, and runs `npx wrangler deploy` with the `production` environment's `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets.
+
+Locally, `npx wrangler deploy` from the repository root (logged in to the Cloudflare account that holds `ensomi.app`) also deploys directly. In both cases Wrangler runs `npm run build:site` first (`build.command` in `wrangler.jsonc`).
 
 ## Previews
 
