@@ -6,6 +6,7 @@ public/app.js
 public/worker.js
 public/ensomi-runtime.wasm
 public/resampler/
+public/licenses/
 packages/runtime/artifacts/browser-test/*
 !packages/runtime/artifacts/browser-test/report.md
 packages/runtime/artifacts/speed/runs/
