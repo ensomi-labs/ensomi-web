@@ -496,7 +496,8 @@ function showResult(result: GenerationResult, search?: Search) {
     ++resultCount;
     wavFallback = undefined;
     for (const url of urls) URL.revokeObjectURL(url);
-    const audio = URL.createObjectURL(done.song.wav ?? done.song.file);
+    const mime = /^audio\/[a-z0-9.+-]+$/i.test(done.song.file.type) ? done.song.file.type : 'application/octet-stream';
+    const audio = URL.createObjectURL(done.song.wav ?? new Blob([new Uint8Array(done.song.buffer)], { type: mime }));
     urls = [audio];
     showChart(result, chosen ? { ...done, seed: chosen.seed } : done).catch(error => showError(t.generationFailed(error instanceof Error ? error.message : String(error))));
 
