@@ -88,6 +88,7 @@ function ensureWorker() {
         }
         else if (data.type === 'file') onFile(data);
         else if (data.type === 'loaded') onLoaded(data);
+        else if (data.type === 'backend') onBackend(data);
         else if (data.type === 'phase') markPhase(data);
         else if (data.type === 'prepared') onPrepared(data);
         else if (data.type === 'try') $('run-status').textContent = t.generatingTry(providerName(provider), data.index, data.of);
@@ -179,9 +180,24 @@ function onLoaded(data: { capabilities: ModelCapabilities; provider: string; thr
     update();
 }
 
+function onBackend(data: { provider: string; threads: number; seconds: number }) {
+    provider = data.provider;
+    threads = data.threads;
+    loadSeconds = data.seconds;
+    if (caps && !loading)
+        $('model-status').textContent = t.modelReady(`${caps.model_name} ${caps.model_version}`, providerName(provider), loadSeconds.toFixed(1));
+    if (generating)
+        $('run-status').textContent = t.generating(providerName(provider));
+}
+
 function onError(data: { during: string; id?: number; message: string }) {
     if (data.during === 'load') {
         loading = false;
+        caps = undefined;
+        if (prep) prep.failed = true;
+        phase.active = [];
+        finishRun();
+        renderSections();
         $('model-meter').hidden = true;
         $('model-status').textContent = t.modelNotLoaded;
         showError(t.loadFailed(data.message));
@@ -226,7 +242,7 @@ field('song').addEventListener('change', async () => {
     try {
         const start = performance.now(), buffer = await file.arrayBuffer();
         if (id !== songCount) return;
-        let durationMs: number, info: AudioInfo | undefined, fallback: { pcm: Float32Array; rate: number } | undefined;
+        let durationMs: number, info: { title?: string; artist?: string } | undefined, fallback: { pcm: Float32Array; rate: number } | undefined;
         try {
             const decoded = await decodeInWorker(id, file.name, buffer);
             durationMs = decoded.durationMs;
@@ -236,7 +252,8 @@ field('song').addEventListener('change', async () => {
             if (id !== songCount) return;
             const web = await decodeSong(buffer);
             durationMs = web.pcm.length / web.rate * 1000;
-            fallback = web;
+            info = web.info;
+            fallback = { pcm: web.pcm, rate: web.rate };
         }
         if (id !== songCount) return;
         song = { id, file, buffer, durationMs, decodeSeconds: (performance.now() - start) / 1000, fallback };

@@ -10,8 +10,13 @@ const CORE = new URL('ensomi-runtime.wasm', self.location.href), RESAMPLER = url
 // Model files are cached by URL under this name; change it when the model URL or the files behind it change. Loading
 // deletes the caches of other names, such as `ensomi-r2@r2-1.0`, which held the same files from the tag before.
 const CACHE = 'ensomi-r2@r2-1.0.1';
+// WebAssembly threads need cross-origin isolation (public/_headers). Next to WebGPU, WebAssembly runs only the
+// per-row graphs, which are fastest on two threads; on its own it also runs BeatThis, which gains up to four.
+const threads = (backend: 'webgpu' | 'wasm') => self.crossOriginIsolated ? Math.min(backend === 'webgpu' ? 2 : 4, navigator.hardwareConcurrency) : 1;
 
-let models: Models | undefined;
+type LoadRequest = { files?: File[]; base: string };
+
+let models: Models | undefined, activeBackend: 'webgpu' | 'wasm' = 'wasm', webgpuFailed = false, loadRequest: LoadRequest | undefined;
 // Mono PCM decoded most recently by the Wasm core, kept here so `prepare` does not copy it through the main thread.
 let decoded: { id: number; samples: Float32Array; sampleRate: number } | undefined;
 // The song prepared last, by the page's id for it; generations start from its Prepared.
@@ -27,14 +32,15 @@ function turn<T>(task: () => Promise<T>) {
 }
 
 /** Reads model files through the Cache API, downloading (with progress) only what is missing. */
-function cachedSource(base: string): FileSource {
+function cachedSource(base: string, silent = false): FileSource {
     return async (path) => {
         const url = new URL(path, base).href;
         const cache = await self.caches?.open(CACHE).catch(() => undefined);
         const hit = await cache?.match(url);
         if (hit) {
             const bytes = new Uint8Array(await hit.arrayBuffer());
-            post({ type: 'file', path, loaded: bytes.length, size: bytes.length, cached: true });
+            if (!silent)
+                post({ type: 'file', path, loaded: bytes.length, size: bytes.length, cached: true });
             return bytes;
         }
         // Hugging Face's CDN answers a Referer on workers.dev, where the Previews are, with a 404 without CORS headers.
@@ -52,7 +58,7 @@ function cachedSource(base: string): FileSource {
             if (done) break;
             chunks.push(value);
             loaded += value.length;
-            if (performance.now() - reported > 100) {
+            if (!silent && performance.now() - reported > 100) {
                 reported = performance.now();
                 post({ type: 'file', path, loaded, size, cached: false });
             }
@@ -63,10 +69,16 @@ function cachedSource(base: string): FileSource {
             bytes.set(chunk, at);
             at += chunk.length;
         }
-        post({ type: 'file', path, loaded, size: loaded, cached: false });
+        if (!silent)
+            post({ type: 'file', path, loaded, size: loaded, cached: false });
         await cache?.put(url, new Response(bytes));
         return bytes;
     };
+}
+
+function loadFor(backend: 'webgpu' | 'wasm', req: LoadRequest, silent = false) {
+    const source = req.files ? localFilesSource(req.files) : cachedSource(req.base, silent);
+    return loadModels(source, { backend, core: CORE, runtimeSource: RESAMPLER, wasm: { wasmPaths: ORT_WASM, numThreads: threads(backend) } });
 }
 
 async function webgpuAdapter() {
@@ -135,26 +147,24 @@ onmessage = async ({ data }: MessageEvent) => {
         else if (data.type === 'load') {
             song = undefined;
             await turn(async () => {
-                const start = performance.now();
-                await models?.dispose();
+                const start = performance.now(), req: LoadRequest = { files: data.files, base: String(data.base) };
+                await models?.dispose().catch(() => undefined);
                 models = undefined;
                 await self.caches?.keys().then((names) => Promise.all(names.filter((name) => name !== CACHE).map((name) => caches.delete(name)))).catch(() => undefined);
-                const source = data.files ? localFilesSource(data.files) : cachedSource(data.base);
-                // WebAssembly threads need cross-origin isolation (public/_headers). Next to WebGPU, WebAssembly runs only the
-                // per-row graphs, which are fastest on two threads; on its own it also runs BeatThis, which gains up to four.
-                const threads = (backend: string) => self.crossOriginIsolated ? Math.min(backend === 'webgpu' ? 2 : 4, navigator.hardwareConcurrency) : 1;
-                const load = (backend: 'webgpu' | 'wasm') => loadModels(source, { backend, core: CORE, runtimeSource: RESAMPLER, wasm: { wasmPaths: ORT_WASM, numThreads: threads(backend) } });
-                let backend: 'webgpu' | 'wasm' = data.backend !== 'wasm' && await webgpuAdapter() ? 'webgpu' : 'wasm';
+                let backend: 'webgpu' | 'wasm' = data.backend !== 'wasm' && !webgpuFailed && await webgpuAdapter() ? 'webgpu' : 'wasm';
                 try {
-                    models = await load(backend);
+                    models = await loadFor(backend, req);
                 }
                 catch (error) {
                     if (backend === 'wasm')
                         throw error;
                     // An adapter does not guarantee a working device or session; WebAssembly needs neither.
+                    webgpuFailed = true;
                     backend = 'wasm';
-                    models = await load(backend);
+                    models = await loadFor(backend, req);
                 }
+                activeBackend = backend;
+                loadRequest = req;
                 post({ type: 'loaded', capabilities: models.capabilities, provider: backend, threads: threads(backend), seconds: (performance.now() - start) / 1000 });
             });
         }
@@ -165,10 +175,38 @@ onmessage = async ({ data }: MessageEvent) => {
             if (!samples || !rate)
                 throw new Error('Song audio is not available');
             const marks: number[] = [];
-            const prepared = turn(() => prepare(models!, samples, rate, { onProgress: ({ phase }) => {
-                marks[phase] = performance.now();
-                post({ type: 'phase', id: data.id, phase });
-            } }));
+            const prepared = turn(async () => {
+                if (!models)
+                    throw new Error('Model is not loaded');
+                const runPrepare = () => {
+                    marks.length = 0;
+                    return prepare(models!, samples, rate, { onProgress: ({ phase }) => {
+                        marks[phase] = performance.now();
+                        post({ type: 'phase', id: data.id, phase });
+                    } });
+                };
+                try {
+                    return await runPrepare();
+                }
+                catch (error) {
+                    if (activeBackend !== 'webgpu' || !loadRequest)
+                        throw error;
+                    // BeatThis compiles its WebGPU compute pipelines on the first run; reload on WebAssembly if that fails.
+                    webgpuFailed = true;
+                    activeBackend = 'wasm';
+                    const start = performance.now();
+                    await models?.dispose().catch(() => undefined);
+                    models = undefined;
+                    try {
+                        models = await loadFor('wasm', loadRequest, true);
+                    }
+                    catch (loadError) {
+                        throw Object.assign(loadError instanceof Error ? loadError : new Error(String(loadError)), { during: 'load' });
+                    }
+                    post({ type: 'backend', provider: 'wasm', threads: threads('wasm'), seconds: (performance.now() - start) / 1000 });
+                    return await runPrepare();
+                }
+            });
             song = { id: data.id, prepared };
             await prepared;
             // The stages' own times, which a receipt from a Prepared leaves out: PCM preparation, then the timing stages.
@@ -182,7 +220,7 @@ onmessage = async ({ data }: MessageEvent) => {
             post({ type: 'result', ...done }, done.result.osz ? [done.result.osz.buffer] : []);
         }
     }
-    catch (error) {
-        post({ type: 'error', during: data.type, id: data.id, message: error instanceof Error ? error.message : `ONNX Runtime stopped with error ${String(error)}` });
+    catch (error: any) {
+        post({ type: 'error', during: error?.during ?? data.type, id: data.id, message: error instanceof Error ? error.message : `ONNX Runtime stopped with error ${String(error)}` });
     }
 };
