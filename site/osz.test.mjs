@@ -24,7 +24,7 @@ BeatmapSetID:-1
 CircleSize:4
 [TimingPoints]
 2,500.0,4,2,0,100,1,0
-// ensomi-runtime 0.3.2 seed=${seed} random=mulberry32-u53-v1
+// ensomi-runtime 0.4.0 seed=${seed} random=mulberry32-u53-v1
 [HitObjects]
 64,192,${first},1,0,0:0:0:0:
 192,192,${first + 500},128,0,${first + 900}:0:0:0:0:
@@ -35,7 +35,7 @@ function runtimeReceipt({ seed = 1, seconds = 1.5 } = {}) {
     return `{
   "runtime": {
     "name": "ensomi-runtime",
-    "version": "0.3.2"
+    "version": "0.4.0"
   },
   "seed": ${seed},
   "metadata": {

@@ -66,6 +66,7 @@ export function getPreviewStartMs(firstNoteMs: number | undefined, laneHeight: n
 
 export class Player {
     speed = 720;
+    targetMs = 0;
     private track?: Track;
     private starts: number[] = [];
     private longest = 0;
@@ -124,8 +125,11 @@ export class Player {
     }
 
     get duration() { return this.track?.chart.duration_ms ?? 0; }
-    get time() { return this.audio.currentTime * 1000; }
-    seek(ms: number) { this.audio.currentTime = clamp(ms, 0, this.duration) / 1000; }
+    get time() { return this.audio.error ? this.targetMs : this.audio.currentTime * 1000; }
+    seek(ms: number) {
+        this.targetMs = clamp(ms, 0, this.duration);
+        this.audio.currentTime = this.targetMs / 1000;
+    }
     toggle() {
         if (this.audio.paused) void this.audio.play();
         else this.audio.pause();

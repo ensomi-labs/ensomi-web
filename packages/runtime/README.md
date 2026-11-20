@@ -1,10 +1,10 @@
 # Runtime checks
 
-The page generates with [`@ensomi/runtime`](https://www.npmjs.com/package/@ensomi/runtime) 0.3.2 from npm, the
+The page generates with [`@ensomi/runtime`](https://www.npmjs.com/package/@ensomi/runtime) 0.4.0 from npm, the
 WebAssembly build of Ensomi's shared Rust runtime ([ensomi-labs/runtime](https://github.com/ensomi-labs/runtime),
-tag `v0.3.2`) and its JavaScript API over ONNX Runtime Web. The repository root's `package.json` pins it exactly; the
+tag `v0.4.0`) and its JavaScript API over ONNX Runtime Web. The repository root's `package.json` pins it exactly; the
 package's README documents the API. This directory holds the checks of that runtime in this site, the browser tests
-and their results. Apache-2.0.
+and their results. Apache-2.0 (`@ensomi/runtime`'s Wasm core includes Symphonia under MPL-2.0).
 
 The package replaced a vendored copy of the same build, which had replaced the TypeScript runtime of main `9d8e725`.
 From 0.2.0 the runtime arranges a song once. The TypeScript runtime, like the Python release, arranged it a second
@@ -17,17 +17,16 @@ time when the first arrangement missed the star's difficulty target, so their ch
   from the package's own files. The model's files come through the Cache API (`cachedSource`), which rejects an
   HTTP 404 with `code` `'ENOENT'` as the package's own sources do, so a model without `ensomi-package.json` loads from
   its `runtime.json`. With the manifest the runtime checks every file's SHA-256.
-- By default `site/app.ts` decodes the song with the package's `decodeAudio`: WebAudio decodes it at 24000 and
-  22050 Hz, and the worker passes both streams to `prepare`, so the core converts no rate and reads no resampler
-  table. WebAudio's resampler is not the Python release's, which moves the beat grid by up to 1.3 ms against the
-  release charts.
-- With the Exact timing option on, `site/audio.ts` decodes the song again at the file's own sample rate, read from its
-  header, and the worker passes that mono PCM to `prepare`. The core converts it to BeatThis's 22050 Hz with the
-  soxr table for that rate, fetched from `public/resampler/`, and to the rows model's 24000 Hz by linear
-  interpolation, as the Python release does. The report gives the drift and the cost both ways
-  (`artifacts/browser-test/report.md`).
+- `site/worker.ts` decodes each chosen song with the package's `decodeAudioBytes` (Symphonia in WebAssembly: MP3, FLAC,
+  WAV, Ogg Vorbis, M4A AAC and ALAC, AIFF, CAF, MKV/WebM) to mono PCM at the file's own sample rate with BASS /
+  release-engine lead alignment and tags (`title`, `artist`). When Symphonia rejects an unsupported codec such as Opus,
+  `site/audio.ts` falls back to WebAudio at the file's own sample rate, read from its header. The core then converts
+  that mono PCM to BeatThis's 22050 Hz with the soxr table for that rate, fetched from `public/resampler/`, and to the
+  rows model's 24000 Hz by linear interpolation, as the Python release does. When the browser's `<audio>` element
+  cannot play the uploaded file natively in the inspector, the worker transcodes a 16-bit WAV blob with
+  `decodeAudioWav`.
 - As soon as the model is loaded and a song decoded, the worker runs the song's audio stages with `prepare` (PCM,
-  BeatThis, the features and the beat grid), and again when Exact timing is toggled; nothing else runs until Generate.
+  BeatThis, the features and the beat grid); nothing else runs until Generate.
   Generate makes the whole chart from that `Prepared` with `ChartScheduler` in `'whole-chart'` mode, which gives
   `generateChart`'s chart and `.osu` (`checks/prepare-equal.mjs`), and the page plays it afterwards. Loading,
   preparing and generating take turns in the worker. A receipt from a `Prepared` times only the stages after timing;

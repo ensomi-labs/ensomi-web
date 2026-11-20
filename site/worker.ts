@@ -1,18 +1,19 @@
-import { ChartScheduler, GenerationPhase, loadModels, localFilesSource, prepare, urlSource, type FileSource, type GenerateChartRequest, type GenerationResult, type Models, type Prepared } from '@ensomi/runtime';
+import { ChartScheduler, GenerationPhase, decodeAudioBytes, decodeAudioWav, loadModels, localFilesSource, prepare, urlSource, type FileSource, type GenerateChartRequest, type GenerationResult, type Models, type Prepared } from '@ensomi/runtime';
 import { PRECISE, precise } from './precise.js';
 import { maniaStar } from './star.js';
 
-/** Generation worker: loads the model once, runs the audio stages of each song the page decoded as soon as it is
- * chosen, and generates charts from them when asked. */
+/** Generation worker: decodes chosen songs with the Wasm core's Symphonia decoder, loads the model once, runs each
+ * song's audio stages as soon as the model and the song are both ready, and generates charts from them when asked. */
 const ORT_WASM = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/';
-// The runtime's Wasm core and its resampler tables, copied beside this script by `npm run build:site`. The core reads
-// the tables only for exact timing, the three for the song's rate.
+// The runtime's Wasm core and its resampler tables, copied beside this script by `npm run build:site`.
 const CORE = new URL('ensomi-runtime.wasm', self.location.href), RESAMPLER = urlSource(new URL('resampler/', self.location.href).href);
 // Model files are cached by URL under this name; change it when the model URL or the files behind it change. Loading
 // deletes the caches of other names, such as `ensomi-r2@r2-1.0`, which held the same files from the tag before.
 const CACHE = 'ensomi-r2@r2-1.0.1';
 
 let models: Models | undefined;
+// Mono PCM decoded most recently by the Wasm core, kept here so `prepare` does not copy it through the main thread.
+let decoded: { id: number; samples: Float32Array; sampleRate: number } | undefined;
 // The song prepared last, by the page's id for it; generations start from its Prepared.
 let song: { id: number; prepared: Promise<Prepared> } | undefined;
 const post = (message: unknown, transfer: Transferable[] = []) => postMessage(message, { transfer });
@@ -112,7 +113,26 @@ async function closestChart(prepared: Prepared, request: GenerateChartRequest, a
 
 onmessage = async ({ data }: MessageEvent) => {
     try {
-        if (data.type === 'load') {
+        if (data.type === 'decode') {
+            try {
+                const out = await decodeAudioBytes(data.bytes, { name: data.name, core: CORE });
+                decoded = { id: data.id, samples: out.samples, sampleRate: out.sampleRate };
+                post({ type: 'decoded', id: data.id, durationMs: out.durationMs, info: out.info });
+            }
+            catch (error: any) {
+                post({ type: 'decode-error', id: data.id, unsupported: error?.code === 'UNSUPPORTED_AUDIO', message: error instanceof Error ? error.message : String(error) });
+            }
+        }
+        else if (data.type === 'wav') {
+            try {
+                const wav = await decodeAudioWav(data.bytes, { name: data.name, core: CORE });
+                post({ type: 'wav', id: data.id, wav }, [wav.buffer]);
+            }
+            catch (error) {
+                post({ type: 'wav-error', id: data.id, message: error instanceof Error ? error.message : String(error) });
+            }
+        }
+        else if (data.type === 'load') {
             song = undefined;
             await turn(async () => {
                 const start = performance.now();
@@ -139,11 +159,13 @@ onmessage = async ({ data }: MessageEvent) => {
             });
         }
         else if (data.type === 'prepare') {
-            // Exact timing sends mono PCM at the song's own rate and the core makes both frontend streams; otherwise
-            // WebAudio made them at 24000 and 22050 Hz.
-            const pcm = data.rate ? data.pcm : { samples: data.mel, channels: 1, mel: data.mel, beatthis: data.beatthis };
+            const hit = decoded?.id === data.songId ? decoded : undefined;
+            const samples: Float32Array | undefined = data.pcm ?? hit?.samples;
+            const rate: number | undefined = data.rate ?? hit?.sampleRate;
+            if (!samples || !rate)
+                throw new Error('Song audio is not available');
             const marks: number[] = [];
-            const prepared = turn(() => prepare(models!, pcm, data.rate ?? 24000, { onProgress: ({ phase }) => {
+            const prepared = turn(() => prepare(models!, samples, rate, { onProgress: ({ phase }) => {
                 marks[phase] = performance.now();
                 post({ type: 'phase', id: data.id, phase });
             } }));
@@ -153,8 +175,9 @@ onmessage = async ({ data }: MessageEvent) => {
             post({ type: 'prepared', id: data.id, seconds: { pcm: (marks[GenerationPhase.TIMING] - marks[GenerationPhase.LOADING]) / 1000, timing: (performance.now() - marks[GenerationPhase.TIMING]) / 1000 } });
         }
         else if (data.type === 'generate') {
-            // The page asks only for the song it prepared last; a song chosen since then waits for this generation.
-            const prepared = song!.prepared;
+            if (!song || song.id !== data.prepId)
+                throw new Error('Prepared timing is no longer active');
+            const prepared = song.prepared;
             const done = await turn(async () => data.precise ? closestChart(await prepared, data.request, data.audio, data.precise) : { result: await chart(await prepared, data.request, data.audio) });
             post({ type: 'result', ...done }, done.result.osz ? [done.result.osz.buffer] : []);
         }

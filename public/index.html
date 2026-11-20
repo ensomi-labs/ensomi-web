@@ -90,8 +90,8 @@
         </div>
         <div class="panel">
           <h3><span class="step-num">2</span>Song</h3>
-          <label>Audio file <input type="file" id="song" accept="audio/*,.mp3,.ogg,.wav,.flac,.m4a"></label>
-          <p class="status" id="song-status">Any format this browser can decode. The file stays on your computer.</p>
+          <label>Audio file <input type="file" id="song" accept="audio/*,.mp3,.mp2,.ogg,.oga,.opus,.wav,.flac,.m4a,.mp4,.aac,.aif,.aiff,.caf,.mkv,.mka,.webm"></label>
+          <p class="status" id="song-status">MP3, FLAC, WAV, Ogg, M4A (AAC or ALAC), AIFF, CAF, MKV, Opus and any format this browser decodes. The file stays on your computer.</p>
           <div class="pair">
             <label>Title <input type="text" id="title" autocomplete="off"></label>
             <label>Artist <input type="text" id="artist" autocomplete="off"></label>
@@ -113,10 +113,6 @@
         <div class="precise">
           <label><input type="checkbox" id="precise" aria-describedby="precise-note"> Precise difficulty</label>
           <p class="small muted" id="precise-note">Makes up to <span id="precise-tries">6</span> charts and keeps the closest. Slower.</p>
-        </div>
-        <div class="exact">
-          <label><input type="checkbox" id="exact" aria-describedby="exact-note"> Exact timing</label>
-          <p class="small muted" id="exact-note">Decodes the song at its own sample rate and converts it as the Python release does, so beat times match the release to within a few thousandths of a millisecond instead of up to about 1.3 ms. Adds about half a second per song, more for high-sample-rate files (about 1.3 s at 96 kHz).</p>
         </div>
         <div class="sections">
           <h4>Sections <span class="muted small">optional</span></h4>
@@ -279,7 +275,7 @@
 
     <section id="run">
       <h2>Run it yourself</h2>
-      <p class="prose">The generator above runs R2 in your browser with <code>@ensomi/runtime</code>: the networks in ONNX Runtime Web, everything else in ensomi's Rust runtime compiled to WebAssembly. The browser decodes the song and draws its own random numbers, so a seed here does not give the same chart as the same seed on the command line.</p>
+      <p class="prose">The generator above runs R2 in your browser with <code>@ensomi/runtime</code>: the networks in ONNX Runtime Web, and audio decoding, resampling and generation in ensomi's Rust runtime compiled to WebAssembly (falling back to WebAudio for formats such as Opus). Because the runtime draws its own random numbers, a seed here does not give the same chart as the same seed on the command line.</p>
       <p class="prose">To run the release from the command line (we checked it on macOS with Apple silicon; Linux and CUDA were not run):</p>
 <pre><code>git clone https://github.com/ensomi-labs/ensomi-model.git
 cd ensomi-model

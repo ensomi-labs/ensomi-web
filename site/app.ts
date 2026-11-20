@@ -1,5 +1,6 @@
-import { ControlStatus, GenerationPhase, PatternKind, decodeAudio, type GenerateChartRequest, type GenerationResult, type ModelCapabilities, type SectionRequest } from '@ensomi/runtime';
+import { ControlStatus, GenerationPhase, type AudioInfo, type GenerateChartRequest, type GenerationResult, type ModelCapabilities, type SectionRequest } from '@ensomi/runtime';
 import { decodeSong } from './audio.js';
+import { KINDS, activeSectionControls, songMetadata, songStem, syncCapabilities, type SectionDraft } from './form.js';
 import { maniaStar } from './star.js';
 import { bundle, chartFile, shortHash, type Chart } from './osz.js';
 import { Player, RATES, VISUAL_SPEEDS } from './player.js';
@@ -14,19 +15,18 @@ const params = new URLSearchParams(location.search);
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const field = (id: string) => $<HTMLInputElement>(id);
 
-const KINDS: Record<string, PatternKind | 'star'> = { jumpstream: PatternKind.JUMPSTREAM, chordstream: PatternKind.CHORDSTREAM, stream: PatternKind.STREAM, jack: PatternKind.JACK, chordjack: PatternKind.CHORDJACK, section_star: 'star' };
 const RECEIPT_TIMES = ['rows', 'prior', 'arrangement', 'export'];
 // The stages that read the conditions; they run together when Generate is pressed, without progress of their own.
 const CHART_PHASES = [GenerationPhase.ROWS, GenerationPhase.ARRANGEMENT, GenerationPhase.EXPORT];
 // A chart further than this from the star asked for says so in words in its result.
 const STAR_NEAR = 0.5;
 
-/** `audioId`, the ID of the song's bytes in its `.osz` (site/osz.ts), is taken once, for its first result. */
-interface Song { file: File; buffer: ArrayBuffer; mel: Float32Array; beatthis: Float32Array; durationMs: number; decodeSeconds: number; audioId?: Promise<string> }
-interface SectionDraft { start: string; end: string; kind: string; strength: number; star: number }
-/** A song's audio stages, run in the worker as soon as the model and the song are ready. `posted` settles once the worker
- * has the request, `seconds` arrive when the stages are done. */
-interface Prep { id: number; song: Song; exact: boolean; posted: Promise<void>; decode?: { rate: number; seconds: number }; seconds?: { pcm: number; timing: number }; failed?: boolean }
+/** `audioId`, the ID of the song's bytes in its `.osz` (site/osz.ts), is taken once, for its first result. `fallback`
+ * holds mono PCM when WebAudio decoded a codec Symphonia does not carry (such as Opus); `wav` caches a 16-bit WAV blob
+ * when this browser's `<audio>` element cannot play the original container or codec natively. */
+interface Song { id: number; file: File; buffer: ArrayBuffer; durationMs: number; decodeSeconds: number; fallback?: { pcm: Float32Array; rate: number }; wav?: Blob; audioId?: Promise<string> }
+/** A song's audio stages, run in the worker as soon as the model and the song are ready. */
+interface Prep { id: number; song: Song; seconds?: { pcm: number; timing: number }; failed?: boolean }
 /** `precise` is set with the Precise difficulty option: the worker then searches from `star` and `seed`, asking only for
  * stars in that range, the star slider's (site/precise.ts). */
 interface Job { song: Song; title: string; artist: string; seed: number | bigint; random: boolean; star: number; precise?: [number, number]; sections: SectionRequest[]; prep: Prep }
@@ -34,10 +34,12 @@ interface Job { song: Song; title: string; artist: string; seed: number | bigint
 interface Search { tries: Try[]; best: number; seconds: number }
 
 let worker: Worker | undefined, caps: ModelCapabilities | undefined, provider = '', threads = 1, loadSeconds = 0, loading = false;
-let song: Song | undefined, prep: Prep | undefined, prepCount = 0, job: Job | undefined, generating = false, timer = 0;
-let sections: SectionDraft[] = [], urls: string[] = [];
+let song: Song | undefined, prep: Prep | undefined, songCount = 0, prepCount = 0, wavCount = 0, resultCount = 0, job: Job | undefined, generating = false, timer = 0;
+let sections: SectionDraft[] = [], urls: string[] = [], wavFallback: Promise<void> | undefined;
 let phase = { active: [] as number[], started: 0, seconds: [] as number[] };
 const downloaded = new Map<string, [number, number]>();
+const pendingDecodes = new Map<number, { resolve: (v: { durationMs: number; info: AudioInfo }) => void; reject: (e: Error) => void }>();
+const pendingWavs = new Map<number, { resolve: (v: Uint8Array) => void; reject: (e: Error) => void }>();
 
 const mb = (bytes: number) => (bytes / 1e6).toFixed(1);
 const providerName = (name: string) => name === 'webgpu' ? 'WebGPU' : threads > 1 ? t.wasmThreads(threads) : t.wasmOneThread;
@@ -54,16 +56,37 @@ function showError(message: string) {
     $('error').hidden = false;
 }
 const clearError = () => { $('error').hidden = true; };
+function resetPhases() {
+    phase = { active: [], started: 0, seconds: [] };
+    ticking();
+}
 
-// 1. Model
+// 1. Model & Worker
 const sourceIsFolder = () => document.querySelector<HTMLInputElement>('input[name="source"]:checked')!.value === 'folder';
 for (const radio of document.querySelectorAll<HTMLInputElement>('input[name="source"]'))
     radio.addEventListener('change', () => { $('folder-field').hidden = !sourceIsFolder(); });
 
-function startWorker() {
+function ensureWorker() {
+    if (worker) return worker;
     const w = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
     w.onmessage = ({ data }) => {
-        if (data.type === 'file') onFile(data);
+        if (data.type === 'decoded') {
+            pendingDecodes.get(data.id)?.resolve({ durationMs: data.durationMs, info: data.info });
+            pendingDecodes.delete(data.id);
+        }
+        else if (data.type === 'decode-error') {
+            pendingDecodes.get(data.id)?.reject(Object.assign(new Error(data.message), { unsupported: data.unsupported }));
+            pendingDecodes.delete(data.id);
+        }
+        else if (data.type === 'wav') {
+            pendingWavs.get(data.id)?.resolve(data.wav);
+            pendingWavs.delete(data.id);
+        }
+        else if (data.type === 'wav-error') {
+            pendingWavs.get(data.id)?.reject(new Error(data.message));
+            pendingWavs.delete(data.id);
+        }
+        else if (data.type === 'file') onFile(data);
         else if (data.type === 'loaded') onLoaded(data);
         else if (data.type === 'phase') markPhase(data);
         else if (data.type === 'prepared') onPrepared(data);
@@ -71,8 +94,34 @@ function startWorker() {
         else if (data.type === 'result') showResult(data.result, data.precise);
         else if (data.type === 'error') onError(data);
     };
-    w.onerror = event => onError({ during: loading ? 'load' : 'generate', message: event.message || t.workerFailed });
+    w.onerror = event => {
+        const message = event.message || t.workerFailed;
+        worker = undefined;
+        caps = undefined;
+        for (const p of pendingDecodes.values()) p.reject(new Error(message));
+        pendingDecodes.clear();
+        for (const p of pendingWavs.values()) p.reject(new Error(message));
+        pendingWavs.clear();
+        onError({ during: loading ? 'load' : preparing() && !generating ? 'prepare' : 'generate', id: prep?.id, message });
+    };
+    worker = w;
     return w;
+}
+
+function decodeInWorker(id: number, name: string, buffer: ArrayBuffer) {
+    const copy = new Uint8Array(buffer.slice(0));
+    return new Promise<{ durationMs: number; info: AudioInfo }>((resolve, reject) => {
+        pendingDecodes.set(id, { resolve, reject });
+        ensureWorker().postMessage({ type: 'decode', id, name, bytes: copy }, [copy.buffer]);
+    });
+}
+
+function wavInWorker(name: string, buffer: ArrayBuffer) {
+    const id = ++wavCount, copy = new Uint8Array(buffer.slice(0));
+    return new Promise<Uint8Array>((resolve, reject) => {
+        pendingWavs.set(id, { resolve, reject });
+        ensureWorker().postMessage({ type: 'wav', id, name, bytes: copy }, [copy.buffer]);
+    });
 }
 
 $('load').addEventListener('click', () => {
@@ -83,13 +132,15 @@ $('load').addEventListener('click', () => {
     loading = true;
     caps = undefined;
     prep = undefined;
+    ++prepCount;
     downloaded.clear();
+    resetPhases();
+    renderSections();
     $('model-meter').hidden = false;
     setMeter(0);
     $('model-status').textContent = t.starting;
     update();
-    worker ??= startWorker();
-    worker.postMessage({ type: 'load', base: new URL(params.get('model') ?? HUB, location.href).href, files: sourceIsFolder() ? Array.from(folder!) : undefined, backend: params.get('backend') });
+    ensureWorker().postMessage({ type: 'load', base: new URL(params.get('model') ?? HUB, location.href).href, files: sourceIsFolder() ? Array.from(folder!) : undefined, backend: params.get('backend') });
 });
 
 function setMeter(fraction: number) { $('model-meter').querySelector('span')!.style.width = `${Math.min(1, fraction) * 100}%`; }
@@ -117,9 +168,12 @@ function onLoaded(data: { capabilities: ModelCapabilities; provider: string; thr
     loading = false;
     $('model-meter').hidden = true;
     $('model-status').textContent = t.modelReady(`${caps.model_name} ${caps.model_version}`, providerName(provider), loadSeconds.toFixed(1));
-    const star = field('star');
-    star.min = String(caps.min_star);
-    star.max = String(Math.round((caps.max_star_exclusive - 0.1) * 10) / 10);
+    const star = field('star'), synced = syncCapabilities(caps, Number(star.value), sections);
+    star.min = String(synced.min);
+    star.max = String(synced.max);
+    star.value = String(synced.star);
+    $('star-value').textContent = synced.star.toFixed(1);
+    sections = synced.sections;
     renderSections();
     startPrepare();
     update();
@@ -137,38 +191,62 @@ function onError(data: { during: string; id?: number; message: string }) {
         if (!prep || data.id !== prep.id) return;
         prep.failed = true;
         phase.active = [];
+        if (generating && job?.prep.id === prep.id) generating = false;
         ticking();
         showError(t.timingFailed(data.message));
     }
     else {
+        const alreadyFailedPrep = Boolean(job?.prep.failed);
         finishRun();
-        showError(t.generationFailed(data.message));
+        if (!alreadyFailedPrep) showError(t.generationFailed(data.message));
     }
     update();
 }
 
 // 2. Song
 field('song').addEventListener('change', async () => {
-    const file = field('song').files?.[0];
-    if (!file) return;
+    const id = ++songCount, file = field('song').files?.[0];
     clearError();
     song = undefined;
     prep = undefined;
-    // The stage holds the chosen song's charts.
+    ++prepCount;
+    // Choosing a song resets song-specific conditions and the stage.
+    sections = [];
+    field('title').value = '';
+    field('artist').value = '';
+    resetPhases();
+    renderSections();
     clearStage();
     update();
+    if (!file) {
+        $('song-status').textContent = t.noSong;
+        return;
+    }
     $('song-status').textContent = t.decoding(file.name);
     try {
-        const start = performance.now(), buffer = await file.arrayBuffer(), { pcm } = await decodeAudio(buffer);
-        song = { file, buffer, mel: pcm.mel!, beatthis: pcm.beatthis!, durationMs: pcm.samples.length / 24000 * 1000, decodeSeconds: (performance.now() - start) / 1000 };
-        $('song-status').textContent = t.decoded(file.name, clock(song.durationMs), song.decodeSeconds.toFixed(1));
-        const title = field('title');
-        if (!title.value || title.dataset.auto === 'true') {
-            title.value = file.name.replace(/\.[^.]+$/, '');
-            title.dataset.auto = 'true';
+        const start = performance.now(), buffer = await file.arrayBuffer();
+        if (id !== songCount) return;
+        let durationMs: number, info: AudioInfo | undefined, fallback: { pcm: Float32Array; rate: number } | undefined;
+        try {
+            const decoded = await decodeInWorker(id, file.name, buffer);
+            durationMs = decoded.durationMs;
+            info = decoded.info;
         }
+        catch {
+            if (id !== songCount) return;
+            const web = await decodeSong(buffer);
+            durationMs = web.pcm.length / web.rate * 1000;
+            fallback = web;
+        }
+        if (id !== songCount) return;
+        song = { id, file, buffer, durationMs, decodeSeconds: (performance.now() - start) / 1000, fallback };
+        $('song-status').textContent = t.decoded(file.name, clock(song.durationMs), song.decodeSeconds.toFixed(1));
+        const meta = songMetadata(file.name, info, { title: field('title').value, artist: field('artist').value });
+        field('title').value = meta.title;
+        field('artist').value = meta.artist;
     }
     catch {
+        if (id !== songCount) return;
         $('song-status').textContent = t.noSong;
         showError(t.cannotDecode(file.name));
     }
@@ -176,33 +254,14 @@ field('song').addEventListener('change', async () => {
     startPrepare();
     update();
 });
-field('title').addEventListener('input', () => { field('title').dataset.auto = 'false'; });
-field('exact').addEventListener('change', () => { startPrepare(); update(); });
 
 /** Runs the song's audio stages (PCM, BeatThis and the beat grid) as soon as the model and the song are both ready, so
- * that Generate runs only the stages that read the conditions. Exact timing decodes the song again at its own rate first
- * (site/audio.ts); toggling it prepares the song again. */
+ * that Generate runs only the stages that read the conditions. */
 function startPrepare() {
     if (!caps || !song || song.durationMs < 3000) return;
-    const current = song, exact = field('exact').checked, id = ++prepCount;
-    const posted = (async () => {
-        if (!exact)
-            return worker!.postMessage({ type: 'prepare', id, mel: current.mel, beatthis: current.beatthis });
-        try {
-            const start = performance.now(), { pcm, rate } = await decodeSong(current.buffer);
-            // A song or setting chosen during the decode has been sent since; this one is not.
-            if (prep?.id !== id) return;
-            prep.decode = { rate, seconds: (performance.now() - start) / 1000 };
-            worker!.postMessage({ type: 'prepare', id, pcm, rate }, [pcm.buffer]);
-        }
-        catch {
-            if (prep?.id !== id) return;
-            prep.failed = true;
-            showError(t.cannotDecode(current.file.name));
-            update();
-        }
-    })();
-    prep = { id, song: current, exact, posted };
+    const id = ++prepCount, fallback = song.fallback;
+    ensureWorker().postMessage({ type: 'prepare', id, songId: song.id, pcm: fallback?.pcm, rate: fallback?.rate });
+    prep = { id, song };
     ticking();
 }
 const preparing = () => Boolean(prep && !prep.seconds && !prep.failed);
@@ -240,21 +299,24 @@ function seedValue(): number | bigint | 'random' | undefined {
     return n <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(n) : n;
 }
 
-const sectionOptions = () => (caps?.controls ?? []).filter(c => c.name in KINDS && c.status !== ControlStatus.NOT_WORKING);
+const sectionOptions = () => activeSectionControls(caps);
 function kindLabel(name: string, status: ControlStatus) {
     const label = name === 'section_star' ? t.starTarget : name[0].toUpperCase() + name.slice(1);
     return status === ControlStatus.EXPERIMENTAL ? t.experimental(label) : label;
 }
 
 $('add-section').addEventListener('click', () => {
-    sections.push({ start: '00:00', end: '00:08', kind: sectionOptions()[0].name, strength: 0.5, star: Number(field('star').value) });
+    const options = sectionOptions();
+    if (!options.length) return;
+    sections.push({ start: '00:00', end: '00:08', kind: options[0].name, strength: 0.5, star: Number(field('star').value) });
     renderSections();
     update();
 });
 
 function renderSections() {
-    const list = $('section-list'), options = sectionOptions();
+    const list = $('section-list'), currentCaps = caps, options = sectionOptions();
     list.replaceChildren();
+    if (!currentCaps || !options.length) return;
     sections.forEach((section, i) => {
         const row = document.createElement('div'), isStar = section.kind === 'section_star';
         row.className = 'section-row';
@@ -270,7 +332,7 @@ function renderSections() {
         end.value = section.end;
         for (const option of options) kind.add(new Option(kindLabel(option.name, option.status), option.name, false, option.name === section.kind));
         q('.value-name').textContent = isStar ? t.star : t.strength;
-        Object.assign(value, isStar ? { min: String(caps!.min_star), max: field('star').max, step: '0.1' } : { min: '0', max: '1', step: '0.05' });
+        Object.assign(value, isStar ? { min: String(currentCaps.min_star), max: field('star').max, step: '0.1' } : { min: '0', max: '1', step: '0.05' });
         value.value = String(isStar ? section.star : section.strength);
         output.textContent = isStar ? section.star.toFixed(1) : section.strength.toFixed(2);
         q('.note').textContent = options.find(o => o.name === section.kind)?.note ?? '';
@@ -317,13 +379,13 @@ function update() {
     $<HTMLButtonElement>('generate-button').disabled = $<HTMLButtonElement>('regenerate').disabled = generating || Boolean(blocker);
     $<HTMLButtonElement>('add-section').disabled = generating || !caps || !song || !sectionOptions().length;
     $<HTMLButtonElement>('load').disabled = loading || generating;
-    // A generation starts from the stages prepared when it was asked for; another song or setting waits until it is done.
-    field('song').disabled = field('exact').disabled = generating;
+    // A generation starts from the stages prepared when it was asked for; another song waits until it is done.
+    field('song').disabled = generating;
     if (!generating) $('run-status').textContent = blocker || (preparing() ? t.timing : prep?.seconds ? t.timingReady : t.readyToGenerate);
 }
 
 // Generate, from the conditions or from the result's Regenerate button, which does the same without scrolling back up.
-async function generate() {
+function generate() {
     if (!song || !caps) return;
     const requests = sectionRequests(), entered = seedValue();
     if (typeof requests === 'string' || entered === undefined) return;
@@ -331,7 +393,7 @@ async function generate() {
     // Stages that failed run again first.
     if (!prep || prep.failed) startPrepare();
     // A blank seed draws a new seed for each generation, as in the app; the result shows the seed used.
-    const title = field('title').value.trim() || song.file.name.replace(/\.[^.]+$/, ''), artist = field('artist').value.trim(), seed = entered === 'random' ? randomSeed() : entered;
+    const title = field('title').value.trim() || songStem(song.file.name), artist = field('artist').value.trim(), seed = entered === 'random' ? randomSeed() : entered;
     job = { song, title, artist, seed, random: entered === 'random', star: Number(field('star').value), precise: field('precise').checked ? [Number(field('star').min), Number(field('star').max)] : undefined, sections: requests, prep: prep! };
     generating = true;
     phase.seconds.length = GenerationPhase.ROWS;
@@ -343,12 +405,7 @@ async function generate() {
     update();
     $('run-status').textContent = t.generating(providerName(provider));
     const request: GenerateChartRequest = { audio: { asset_id: song.file.name }, star: job.star, seed, controls: { sections: requests }, title, ...(artist ? { artist } : {}) };
-    await job.prep.posted;
-    if (job.prep.failed) {
-        finishRun();
-        return update();
-    }
-    worker!.postMessage({ type: 'generate', request, precise: job.precise, audio: { name: song.file.name, bytes: new Uint8Array(song.buffer) } });
+    ensureWorker().postMessage({ type: 'generate', prepId: job.prep.id, request, precise: job.precise, audio: { name: song.file.name, bytes: new Uint8Array(song.buffer) } });
 }
 $('generate-button').addEventListener('click', generate);
 $('regenerate').addEventListener('click', generate);
@@ -396,6 +453,28 @@ const player = new Player($<HTMLCanvasElement>('lanes'), $<HTMLCanvasElement>('o
     $('clock').textContent = `${clock(ms, true)} / ${clock(player.duration)}`;
 });
 
+// When `<audio>` cannot play the uploaded container or codec natively (for instance ALAC in Chrome or Ogg Vorbis in
+// Safari), transcode a 16-bit PCM WAV blob through the Wasm core so the live inspector plays it seamlessly.
+player.audio.addEventListener('error', () => {
+    const currentJob = job, id = resultCount;
+    if (!currentJob || currentJob.song.wav || wavFallback) return;
+    wavFallback = (async () => {
+        try {
+            const wav = await wavInWorker(currentJob.song.file.name, currentJob.song.buffer);
+            currentJob.song.wav = new Blob([wav as BlobPart], { type: 'audio/wav' });
+            if (id !== resultCount) return;
+            const wavUrl = URL.createObjectURL(currentJob.song.wav);
+            urls.push(wavUrl);
+            player.audio.src = wavUrl;
+            player.seek(player.targetMs);
+        }
+        catch { /* preview playback stays unavailable if neither the browser nor Symphonia can render PCM */ }
+        finally {
+            if (id === resultCount) wavFallback = undefined;
+        }
+    })();
+});
+
 /** The star the chart came out at beside the star asked for, and in words how far apart they are when that is more than
  * half a star, which a first chart often is. */
 function starText(measured: number, requested: number) {
@@ -414,8 +493,10 @@ function showResult(result: GenerationResult, search?: Search) {
     phase.seconds[GenerationPhase.ARRANGEMENT] = detail.seconds.prior + detail.seconds.arrangement;
     phase.seconds[GenerationPhase.EXPORT] = detail.seconds.export;
     finishRun();
+    ++resultCount;
+    wavFallback = undefined;
     for (const url of urls) URL.revokeObjectURL(url);
-    const audio = URL.createObjectURL(done.song.file);
+    const audio = URL.createObjectURL(done.song.wav ?? done.song.file);
     urls = [audio];
     showChart(result, chosen ? { ...done, seed: chosen.seed } : done).catch(error => showError(t.generationFailed(error instanceof Error ? error.message : String(error))));
 
@@ -432,7 +513,6 @@ function showResult(result: GenerationResult, search?: Search) {
         [t.receipt.tempo, detail.rows.segments.map((s: number[]) => (60000 / s[1]).toFixed(1)).join(', ') + ' BPM'],
         [t.receipt.sections, done.sections.length ? String(done.sections.length) : t.none],
     ];
-    if (done.prep.decode) facts.push([t.receipt.timing, t.exactFrom(done.prep.decode.rate)]);
     $('receipt').replaceChildren(...facts.flatMap(([label, value]) => {
         const dt = document.createElement('dt'), dd = document.createElement('dd');
         dt.textContent = label;
@@ -440,8 +520,8 @@ function showResult(result: GenerationResult, search?: Search) {
         return [dt, dd];
     }));
     // The audio stages ran when the song was chosen; the receipt times the stages after them, and its total is theirs.
-    const { decode } = done.prep, stages = done.prep.seconds!;
-    const rows: [string, number, boolean?][] = [[t.modelLoad, loadSeconds], [t.audioDecode, done.song.decodeSeconds], ...(decode ? [[t.exactDecode, decode.seconds] as [string, number]] : []), [t.times.pcm, stages.pcm], [t.times.timing, stages.timing], ...RECEIPT_TIMES.map((key): [string, number] => [t.times[key], detail.seconds[key]]), [t.total, detail.seconds.total, true], ...(search ? [[t.preciseTotal, search.seconds] as [string, number]] : [])];
+    const stages = done.prep.seconds!;
+    const rows: [string, number, boolean?][] = [[t.modelLoad, loadSeconds], [t.audioDecode, done.song.decodeSeconds], [t.times.pcm, stages.pcm], [t.times.timing, stages.timing], ...RECEIPT_TIMES.map((key): [string, number] => [t.times[key], detail.seconds[key]]), [t.total, detail.seconds.total, true], ...(search ? [[t.preciseTotal, search.seconds] as [string, number]] : [])];
     $('times').replaceChildren(...rows.map(([label, seconds, total]) => {
         const tr = document.createElement('tr'), th = document.createElement('th'), td = document.createElement('td');
         th.scope = 'row';
@@ -517,7 +597,11 @@ $('get-osz').addEventListener('click', () => {
 });
 
 // Inspector controls
-$('play').addEventListener('click', () => player.toggle());
+async function togglePlay() {
+    if (wavFallback) await wavFallback;
+    player.toggle();
+}
+$('play').addEventListener('click', () => { void togglePlay(); });
 $('restart').addEventListener('click', () => player.seek(0));
 // A new result's audio stops playback without a pause event (the media element load algorithm fires emptied instead).
 function showPlaying() {
@@ -561,7 +645,7 @@ document.addEventListener('keydown', event => {
     if (target.closest('textarea, select, [contenteditable="true"], input:not([type="range"])')) return;
     if (event.key === ' ' && !target.closest('button, a, summary')) {
         event.preventDefault();
-        player.toggle();
+        void togglePlay();
     }
     else if ((event.key === 'ArrowLeft' || event.key === 'ArrowRight') && !target.closest('input')) {
         event.preventDefault();

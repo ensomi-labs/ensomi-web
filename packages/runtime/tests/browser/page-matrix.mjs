@@ -12,9 +12,9 @@ const backend=process.argv[2]||'webgpu', source=process.argv[3]||'local', base=p
 const model=process.env.ENSOMI_MODEL_DIR||join(modelRepo,'artifacts/release-r2/bulk/hf/ensomi-r2');
 const allSongs=[['catch-the-moment','576112','mp3',3.5],['adventure','2202551','ogg',4.5],['hesitation-snow','2486779','ogg',2.5],['saigetsu','1403084','mp3',3.5]];
 const selectedSong=process.argv[4];const songs=selectedSong?allSongs.filter(s=>s[0]===selectedSong):allSongs;
-const exact=process.env.ENSOMI_EXACT==='1';const reportSuffix=(selectedSong?`-${selectedSong}`:'')+(exact?'-exact':'');
+const reportSuffix=selectedSong?`-${selectedSong}`:'';
 await mkdir(bulk,{recursive:true});await mkdir(join(out,'screenshots'),{recursive:true});
-const report={backend,source,exact,started:new Date().toISOString(),loads:[],runs:[],errors:[]};
+const report={backend,source,started:new Date().toISOString(),loads:[],runs:[],errors:[]};
 const save=()=>writeFile(join(out,`page-${backend}-${source}${reportSuffix}.json`),JSON.stringify(report,null,2));
 const browser=await chromium.launch({channel:'chrome',headless:!process.env.ENSOMI_HEADED,args:['--disable-background-timer-throttling','--disable-renderer-backgrounding','--enable-precise-memory-info',...(process.env.ENSOMI_CHROME_ARGS?.split(' ')??[])]});
 report.chromeVersion=browser.version();
@@ -36,9 +36,6 @@ async function load(warm){
  const url=new URL(base);if(source!=='hf')url.searchParams.set('model','/model/onnx/');if(backend==='wasm')url.searchParams.set('backend','wasm');
  await page.goto(url.href);await page.bringToFront();
  if(!report.environment)report.environment=await page.evaluate(async()=>{const a=await navigator.gpu?.requestAdapter();return{ua:navigator.userAgent,hardwareConcurrency:navigator.hardwareConcurrency,deviceMemory:navigator.deviceMemory,gpu:a?{vendor:a.info.vendor,architecture:a.info.architecture,device:a.info.device,description:a.info.description}:null};});
- // Exact timing is off by default, read from the control; ENSOMI_EXACT=1 turns it on for every generation.
- report.exactDefault=await page.locator('#exact').isChecked();if(report.exactDefault)process.exitCode=1;
- if(exact)await page.locator('#exact').check();
  if(source==='folder'){await page.locator('input[value="folder"]').check();await page.locator('#folder').setInputFiles(join(model,'onnx'));}
  const start=performance.now();await page.locator('#load').click();await page.waitForFunction(()=>__test.events.some(e=>['loaded','error'].includes(e.type)),null,{timeout:300000});
  const data=await page.evaluate(()=>({events:__test.events,heapPeak:__test.heapPeak,status:document.querySelector('#model-status').textContent,error:document.querySelector('#error').textContent}));
@@ -69,8 +66,7 @@ async function generate(song,warm,section=false,seed='1',tag=''){
   row.archive={names,audioExact:Buffer.from(archive[audioKey]).equals(await readFile(audioPath)),audioNamed:osu.includes(`\nAudioFilename:${audioKey}\n`),osuFromRuntime:unnamed(osu)===unnamed(data.osu),receiptWithoutTimings:!/"(wall_)?seconds"/.test(receipt)&&untimed(receipt)===untimed(data.receipt.receipt_json)};
   await writeFile(join(bulk,`${label}-chart.json`),JSON.stringify(data.chart));delete row.chart;delete row.receipt;delete row.osu;
  }if(row.error||row.validation?.length||row.archive&&Object.values(row.archive).some(v=>v===false))process.exitCode=1;
- // With exact timing the times table has the second decode and the receipt list a Timing row; without, neither.
- const exactDecode=row.table.some(r=>r.startsWith('Exact-timing decode'));if(exact?!(exactDecode&&row.timingShown):row.timingShown!==undefined||exactDecode)process.exitCode=1;report.runs.push(row);await save();console.log('RUN',label,wallSeconds,row.detail?.seconds,row.error,row.validation?.length);
+ report.runs.push(row);await save();console.log('RUN',label,wallSeconds,row.detail?.seconds,row.error,row.validation?.length);
  await page.locator(data.chart?'#result':'#error').screenshot({path:join(out,`screenshots/${label}.png`)});
  return row;
 }
