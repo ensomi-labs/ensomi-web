@@ -3,15 +3,14 @@
  * WebAssembly backend, seed 1; the grid does not depend on the seed) and compares each receipt's timing segments and
  * beat grid with the Python release receipt in ensomi-model/artifacts/runtime-ref. Beat grid: every beat of the
  * segments from 0 to the song's end, as the inspector draws them; each Python beat against the nearest browser beat.
- * Run from packages/runtime with a page served at ENSOMI_TEST_URL (default http://127.0.0.1:8087); ENSOMI_EXACT=1 turns
- * the page's Exact timing option on:
+ * Run from packages/runtime with a page served at ENSOMI_TEST_URL (default http://127.0.0.1:8087):
  *   node tests/browser/grid-drift.mjs <label>     writes artifacts/browser-test/grid-drift-<label>.json
  */
 import { chromium } from 'playwright';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 const runtime = resolve(import.meta.dirname, '../..'), modelRepo = resolve(runtime, '../../../ensomi-model'), out = join(runtime, 'artifacts/browser-test');
-const label = process.argv[2] ?? 'page', base = process.env.ENSOMI_TEST_URL ?? 'http://127.0.0.1:8087', exact = process.env.ENSOMI_EXACT === '1';
+const label = process.argv[2] ?? 'page', base = process.env.ENSOMI_TEST_URL ?? 'http://127.0.0.1:8087';
 const songs = [['hesitation-snow', 'ogg', 2.5], ['saigetsu', 'mp3', 3.5], ['catch-the-moment', 'mp3', 3.5], ['adventure', 'ogg', 4.5]];
 
 function beats(segments, end) {
@@ -46,7 +45,7 @@ function compare(python, browser, end) {
 
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding'] });
-const report = { label, base, exact, chrome: browser.version(), started: new Date().toISOString(), songs: [] };
+const report = { label, base, chrome: browser.version(), started: new Date().toISOString(), songs: [] };
 try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     await context.addInitScript(() => {
@@ -67,7 +66,6 @@ try {
     url.searchParams.set('model', '/model/onnx/');
     url.searchParams.set('backend', 'wasm');
     await page.goto(url.href);
-    if (exact) await page.locator('#exact').check();
     await page.locator('#load').click();
     await page.waitForFunction(() => /ready/.test(document.querySelector('#model-status').textContent) || !document.querySelector('#error').hidden, null, { timeout: 300000 });
     for (const [slug, ext, star] of songs) {

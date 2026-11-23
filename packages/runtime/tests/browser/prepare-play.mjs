@@ -8,7 +8,6 @@
  *   and seed in page-<backend>-local.json when that report exists.
  * - A newly generated result starts at its visual preview time, or 0 when that would skip less than 3 s.
  * - Generate again while the result plays: the audio stops at that preview time and the button reads Play again.
- * - Exact timing on prepares again at the song's rate; that result shows the Timing fact and the Exact-timing decode.
  * - Adventure chosen and Generate pressed before its timing is done: the generation waits for it.
  */
 import { chromium } from 'playwright';
@@ -118,23 +117,12 @@ try {
     check('Play after the new result plays it', !s.paused && s.play === 'Pause', s);
     await page.locator('#play').click();
 
-    await page.locator('#exact').check();
-    await waitPrepared(1);
-    s = await state();
-    const exactSent = await page.evaluate(() => __test.sent.filter(x => x.type === 'prepare').at(-1));
-    check('Exact timing prepares again at the song rate', count(s.sent, 'prepare') === 2 && exactSent.rate > 0 && count(s.sent, 'generate') === 2, { ...s, exactSent });
-    const exact = await generate();
-    const shown = await page.evaluate(() => ({ timing: [...document.querySelectorAll('#receipt dt')].find(d => d.textContent === 'Timing')?.nextElementSibling.textContent, table: [...document.querySelectorAll('#times tr')].map(x => [...x.cells].map(c => c.textContent).join('\t')) }));
-    check('exact result shows its timing', Boolean(exact) && /exact/.test(shown.timing ?? '') && shown.table.some(r => r.startsWith('Exact-timing decode')) && shown.table.some(r => r.startsWith('BeatThis and beat grid')), shown);
-    await page.locator('#exact').uncheck();
-    await waitPrepared(2);
-
     await chooseSong('2202551', 'ogg');
     const before = await page.evaluate(() => __test.events.filter(e => e.type === 'prepared').length);
     const waited = await generate();
     s = await state();
     const order = await page.evaluate(() => __test.events.map(e => e.type).filter(t => t === 'prepared' || t === 'result').slice(-2));
-    check('Generate during preparation waits for the timing', Boolean(waited) && order.join() === 'prepared,result' && before === 3 && !s.error, { ...s, order, before });
+    check('Generate during preparation waits for the timing', Boolean(waited) && order.join() === 'prepared,result' && before === 1 && !s.error, { ...s, order, before });
     report.finished = new Date().toISOString();
 }
 catch (e) {

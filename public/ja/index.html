@@ -81,8 +81,8 @@
         </div>
         <div class="panel">
           <h3><span class="step-num">2</span>曲</h3>
-          <label>音声ファイル <input type="file" id="song" accept="audio/*,.mp3,.ogg,.wav,.flac,.m4a"></label>
-          <p class="status" id="song-status">このブラウザでデコードできる形式なら何でも使えます。ファイルはパソコンの外に送られません。</p>
+          <label>音声ファイル <input type="file" id="song" accept="audio/*,.mp3,.mp2,.ogg,.oga,.opus,.wav,.flac,.m4a,.mp4,.aac,.aif,.aiff,.caf,.mkv,.mka,.webm"></label>
+          <p class="status" id="song-status">MP3、FLAC、WAV、Ogg、M4A（AAC・ALAC）、AIFF、CAF、MKV、Opus のほか、このブラウザでデコードできる形式が使えます。ファイルはパソコンの外に送られません。</p>
           <div class="pair">
             <label>タイトル <input type="text" id="title" autocomplete="off"></label>
             <label>アーティスト <input type="text" id="artist" autocomplete="off"></label>
@@ -104,10 +104,6 @@
         <div class="precise">
           <label><input type="checkbox" id="precise" aria-describedby="precise-note"> 精密な難易度</label>
           <p class="small muted" id="precise-note">最大 <span id="precise-tries">6</span> 譜面を生成し、指定した★に最も近いものを残します。そのぶん時間がかかります。</p>
-        </div>
-        <div class="exact">
-          <label><input type="checkbox" id="exact" aria-describedby="exact-note"> 厳密なタイミング</label>
-          <p class="small muted" id="exact-note">曲を元のサンプルレートでデコードし、Python 版と同じ方法で変換します。ビートの時刻が Python 版と数千分の 1 ミリ秒以内で一致します（オフのときは最大約 1.3 ms ずれます）。1 曲あたり約 0.5 秒余分にかかり、サンプルレートの高いファイルではさらにかかります（96 kHz で約 1.3 秒）。</p>
         </div>
         <div class="sections">
           <h4>区間 <span class="muted small">任意</span></h4>
@@ -270,7 +266,7 @@
 
     <section id="run">
       <h2>自分で動かす</h2>
-      <p class="prose">上の生成器は <code>@ensomi/runtime</code> を使って R2 をブラウザで動かしています。ニューラルネットワークは ONNX Runtime Web で、それ以外は WebAssembly にコンパイルした ensomi の Rust ランタイムで動きます。曲のデコードと乱数はブラウザ側で行うため、ここでのシードとコマンドラインでの同じシードからは、同じ譜面にはなりません。</p>
+      <p class="prose">上の生成器は <code>@ensomi/runtime</code> を使って R2 をブラウザで動かしています。ニューラルネットワークは ONNX Runtime Web で、音声のデコード・リサンプリング・生成は WebAssembly にコンパイルした ensomi の Rust ランタイムで動きます（Opus などは WebAudio にフォールバックします）。ランタイム独自の乱数を使うため、ここでのシードとコマンドラインでの同じシードからは、同じ譜面にはなりません。</p>
       <p class="prose">コマンドラインでリリース版を動かすには（Apple シリコン搭載の macOS で確認済み。Linux と CUDA では実行していません）：</p>
 <pre><code>git clone https://github.com/ensomi-labs/ensomi-model.git
 cd ensomi-model

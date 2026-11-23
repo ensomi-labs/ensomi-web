@@ -81,8 +81,8 @@
         </div>
         <div class="panel">
           <h3><span class="step-num">2</span>歌曲</h3>
-          <label>音频文件 <input type="file" id="song" accept="audio/*,.mp3,.ogg,.wav,.flac,.m4a"></label>
-          <p class="status" id="song-status">支持此浏览器能解码的任何格式。文件只留在你的电脑上。</p>
+          <label>音频文件 <input type="file" id="song" accept="audio/*,.mp3,.mp2,.ogg,.oga,.opus,.wav,.flac,.m4a,.mp4,.aac,.aif,.aiff,.caf,.mkv,.mka,.webm"></label>
+          <p class="status" id="song-status">支持 MP3、FLAC、WAV、Ogg、M4A（AAC 或 ALAC）、AIFF、CAF、MKV、Opus，以及此浏览器能解码的其他格式。文件只留在你的电脑上。</p>
           <div class="pair">
             <label>标题 <input type="text" id="title" autocomplete="off"></label>
             <label>艺术家 <input type="text" id="artist" autocomplete="off"></label>
@@ -104,10 +104,6 @@
         <div class="precise">
           <label><input type="checkbox" id="precise" aria-describedby="precise-note"> 精确难度</label>
           <p class="small muted" id="precise-note">最多生成 <span id="precise-tries">6</span> 张谱面，保留星数最接近的一张。耗时更长。</p>
-        </div>
-        <div class="exact">
-          <label><input type="checkbox" id="exact" aria-describedby="exact-note"> 精确时间轴</label>
-          <p class="small muted" id="exact-note">按歌曲原始采样率解码，并用与 Python 版相同的方式转换，使节拍时间与 Python 版的差距在千分之几毫秒以内（关闭时最多约 1.3 毫秒）。每首歌多花约 0.5 秒，高采样率文件更久（96 kHz 时约 1.3 秒）。</p>
         </div>
         <div class="sections">
           <h4>分段 <span class="muted small">可选</span></h4>
@@ -270,7 +266,7 @@
 
     <section id="run">
       <h2>自己运行</h2>
-      <p class="prose">上面的生成器通过 <code>@ensomi/runtime</code> 在浏览器中运行 R2：神经网络由 ONNX Runtime Web 运行，其余部分由编译成 WebAssembly 的 ensomi Rust 运行时完成。歌曲解码和随机数都在浏览器里进行，所以这里的种子和命令行中相同的种子不会得到相同的谱面。</p>
+      <p class="prose">上面的生成器通过 <code>@ensomi/runtime</code> 在浏览器中运行 R2：神经网络由 ONNX Runtime Web 运行，音频解码、重采样和生成由编译成 WebAssembly 的 ensomi Rust 运行时完成（Opus 等格式回退到 WebAudio）。由于运行时使用自己的随机数生成器，这里的种子和命令行中相同的种子不会得到相同的谱面。</p>
       <p class="prose">从命令行运行正式版（已在 Apple 芯片的 macOS 上验证；Linux 和 CUDA 未运行过）：</p>
 <pre><code>git clone https://github.com/ensomi-labs/ensomi-model.git
 cd ensomi-model
